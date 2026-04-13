@@ -46,6 +46,8 @@ const TAB_ICONS: Record<Tab, string> = {
   Presets: '☰',
 };
 
+type ViewMode = 'mobile' | 'desktop';
+
 // ─── App root ────────────────────────────────────────────────────────────────
 export default function App() {
   const [demoActive, setDemoActive] = useState(isDemoMode());
@@ -113,7 +115,6 @@ function LiveApp({ onEnterDemo }: { onEnterDemo: () => void }) {
 
   const send = useCallback((obj: object) => {
     const m = obj as Record<string, any>;
-    // Intercept DEMO port selection → switch to demo mode
     if (m.type === 'connect' && m.port === 'DEMO') {
       onEnterDemo();
       return;
@@ -162,6 +163,16 @@ interface ShellProps {
 
 function AppShell({ state, send, ports, connected, port, deviceName, readyState, onRefreshPorts, isDemo }: ShellProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Meters');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('ashly-view-mode');
+    if (saved === 'mobile' || saved === 'desktop') return saved;
+    return window.innerWidth >= 1024 ? 'desktop' : 'mobile';
+  });
+
+  // Persist view mode
+  useEffect(() => {
+    localStorage.setItem('ashly-view-mode', viewMode);
+  }, [viewMode]);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   function inputGain(i: number)    { return state.gains.find(g => g.node === i)?.gain_dB ?? 0; }
@@ -222,19 +233,131 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
   const handleRecallPreset = (index: number) => send({ type: 'recallPreset', index });
   const handleSavePreset   = (index: number, name: string) => send({ type: 'savePreset', index, name });
 
+  // ── Section renderers ──────────────────────────────────────────────────
+  const renderMeters = () => (
+    <div className="panel">
+      <div className="panel-header">Level Meters</div>
+      <div style={{ padding: 12, overflowX: 'auto' }}>
+        <MeterBridge
+          levels={state.meters.levels}
+          gainReduction={state.meters.gainReduction}
+          inputLabels={[...INPUT_LABELS]}
+          outputLabels={[...OUTPUT_LABELS]}
+        />
+      </div>
+    </div>
+  );
+
+  const renderInputs = () => (
+    <div className="panel">
+      <div className="panel-header">Input Channels</div>
+      <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'desktop' ? 'repeat(4, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
+        <Suspense fallback={<ChannelSkeleton count={4} />}>
+          {INPUT_LABELS.map((label, i) => (
+            <div key={i} style={{ background: '#161b22' }}>
+              <InputChannel
+                index={i}
+                label={label}
+                gain_dB={inputGain(i)}
+                muted={inputMuted(i)}
+                delay_ms={inputDelay(i)}
+                eqFilters={inputEQ(i)}
+                eqEnabled={state.status.eqEnable[i] ?? true}
+                onGainChange={dB => handleInputGain(i, dB)}
+                onMute={m => handleInputMute(i, m)}
+                onDelayChange={ms => handleInputDelay(i, ms)}
+                onEQChange={f => handleInputEQChange(i, f)}
+                onEQEnableToggle={() => {}}
+              />
+            </div>
+          ))}
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  const renderRouting = () => (
+    <div className="panel">
+      <div className="panel-header">Input &rarr; Output Routing</div>
+      <div style={{ padding: 12, overflowX: 'auto' }}>
+        <RoutingMatrix
+          routing={state.status.routing}
+          onToggle={handleRoutingToggle}
+        />
+      </div>
+    </div>
+  );
+
+  const renderOutputs = () => (
+    <div className="panel">
+      <div className="panel-header">Output Channels</div>
+      <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'desktop' ? 'repeat(4, 1fr)' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
+        <Suspense fallback={<ChannelSkeleton count={8} />}>
+          {OUTPUT_LABELS.map((label, i) => (
+            <div key={i} style={{ background: '#161b22' }}>
+              <OutputChannel
+                index={i}
+                label={label}
+                gain_dB={outputGain(i)}
+                muted={outputMuted(i)}
+                delay_ms={outputDelay(i)}
+                polarity={state.status.polarity[i] ?? false}
+                eqFilters={outputEQ(i)}
+                eqEnabled={state.status.eqEnable[i + 4] ?? true}
+                hpf={outputHPF(i)}
+                lpf={outputLPF(i)}
+                limiter={outputLimiter(i)}
+                limiterEnabled={state.status.limiterEnable[i] ?? false}
+                onGainChange={dB => handleOutputGain(i, dB)}
+                onMute={m => handleOutputMute(i, m)}
+                onDelayChange={ms => handleOutputDelay(i, ms)}
+                onPolarityToggle={() => {}}
+                onEQChange={f => handleOutputEQChange(i, f)}
+                onEQEnableToggle={() => {}}
+                onHPFChange={(freq, ft) => handleHPFChange(i, freq, ft)}
+                onLPFChange={(freq, ft) => handleLPFChange(i, freq, ft)}
+                onLimiterChange={(field, v) => handleLimiterChange(i, field, v)}
+                onLimiterEnableToggle={() => {}}
+              />
+            </div>
+          ))}
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  const renderPresets = () => (
+    <PresetBar
+      presetNames={state.presetNames}
+      connected={connected}
+      onRecall={handleRecallPreset}
+      onSave={handleSavePreset}
+    />
+  );
+
+  const renderActiveSection = () => {
+    switch (activeTab) {
+      case 'Meters':  return renderMeters();
+      case 'Inputs':  return renderInputs();
+      case 'Routing': return renderRouting();
+      case 'Outputs': return renderOutputs();
+      case 'Presets': return renderPresets();
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0f1117', color: '#e1e4e8' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0d1117', color: '#e1e4e8' }}>
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-50" style={{
-        background: 'rgba(15,17,23,0.92)',
+        background: 'rgba(13,17,23,0.95)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid #30363d',
+        borderBottom: '1px solid #21262d',
       }}>
-        {/* Top bar: logo + title + status */}
-        <div className="flex items-center gap-3 px-4 py-3">
+        {/* Top bar */}
+        <div className="flex items-center gap-3 px-4 py-2.5">
           {/* Logo */}
           <div className="flex items-center gap-2.5 flex-shrink-0">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -247,43 +370,51 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
             </div>
           </div>
 
-          {/* Spacer */}
           <div className="flex-1" />
+
+          {/* View mode toggle */}
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'mobile' ? 'active' : ''}`}
+              onClick={() => setViewMode('mobile')}
+              title="Mobile view"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                <line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'desktop' ? 'active' : ''}`}
+              onClick={() => setViewMode('desktop')}
+              title="Desktop view"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </button>
+          </div>
 
           {/* Status chip */}
           {isDemo ? (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(88,166,255,0.1)', border: '1px solid rgba(88,166,255,0.25)',
-              borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: '#58a6ff', letterSpacing: '0.05em',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#58a6ff', display: 'inline-block', boxShadow: '0 0 6px #58a6ff' }} />
-              DEMO MODE
+            <div className="status-chip status-chip-demo">
+              <span className="status-dot" style={{ background: '#58a6ff', boxShadow: '0 0 6px #58a6ff' }} />
+              DEMO
             </div>
           ) : connected ? (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(63,185,80,0.08)', border: '1px solid rgba(63,185,80,0.25)',
-              borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: '#3fb950', letterSpacing: '0.05em',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3fb950', display: 'inline-block', boxShadow: '0 0 6px #3fb950' }} />
+            <div className="status-chip status-chip-connected">
+              <span className="status-dot" style={{ background: '#3fb950', boxShadow: '0 0 6px #3fb950' }} />
               {deviceName || port}
             </div>
           ) : (
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(139,148,158,0.06)', border: '1px solid #30363d',
-              borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: '#484f58', letterSpacing: '0.05em',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#484f58', display: 'inline-block' }} />
-              DISCONNECTED
+            <div className="status-chip status-chip-disconnected">
+              <span className="status-dot" style={{ background: '#484f58' }} />
+              OFFLINE
             </div>
           )}
 
-          {/* WS indicator (desktop only) */}
           <div className="hidden sm:block" style={{ fontSize: 10, color: readyState === 'open' ? '#3fb950' : '#484f58', fontFamily: 'monospace' }}>
             WS:{readyState === 'open' ? 'OK' : 'off'}
           </div>
@@ -302,14 +433,14 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
         />
 
         {/* Tab navigation */}
-        <nav style={{ borderTop: '1px solid #21262d', padding: '6px 12px', overflowX: 'auto', display: 'flex', gap: 4 }}>
+        <nav className="tab-bar">
           {TABS.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`nav-tab${activeTab === tab ? ' active' : ''}`}
             >
-              <span className="hidden sm:inline mr-1" style={{ opacity: 0.7 }}>{TAB_ICONS[tab]}</span>
+              <span style={{ opacity: 0.6, marginRight: 4 }}>{TAB_ICONS[tab]}</span>
               {tab}
             </button>
           ))}
@@ -317,126 +448,39 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
       </header>
 
       {/* ── Main content ── */}
-      <main style={{ flex: 1, padding: '16px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-          {/* Meters */}
-          <section className={activeTab === 'Meters' ? '' : 'hidden md:block'}>
-            <div className="panel">
-              <div className="panel-header">Level Meters</div>
-              <div style={{ padding: 12, overflowX: 'auto' }}>
-                <MeterBridge
-                  levels={state.meters.levels}
-                  gainReduction={state.meters.gainReduction}
-                  inputLabels={[...INPUT_LABELS]}
-                  outputLabels={[...OUTPUT_LABELS]}
-                />
-              </div>
+      <main className="app-main">
+        {viewMode === 'desktop' ? (
+          /* ── Desktop command center layout ── */
+          <div className="command-center">
+            {/* Persistent meters strip at top */}
+            <div className="cc-meters">
+              {renderMeters()}
             </div>
-          </section>
 
-          {/* Inputs */}
-          <section className={activeTab === 'Inputs' ? '' : 'hidden md:block'}>
-            <div className="panel">
-              <div className="panel-header">Input Channels</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
-                <Suspense fallback={<ChannelSkeleton count={4} />}>
-                  {INPUT_LABELS.map((label, i) => (
-                    <div key={i} style={{ background: '#161b22' }}>
-                      <InputChannel
-                        index={i}
-                        label={label}
-                        gain_dB={inputGain(i)}
-                        muted={inputMuted(i)}
-                        delay_ms={inputDelay(i)}
-                        eqFilters={inputEQ(i)}
-                        eqEnabled={state.status.eqEnable[i] ?? true}
-                        onGainChange={dB => handleInputGain(i, dB)}
-                        onMute={m => handleInputMute(i, m)}
-                        onDelayChange={ms => handleInputDelay(i, ms)}
-                        onEQChange={f => handleInputEQChange(i, f)}
-                        onEQEnableToggle={() => {}}
-                      />
-                    </div>
-                  ))}
-                </Suspense>
-              </div>
+            {/* Main content area — only the active tab */}
+            <div className="cc-content">
+              {activeTab === 'Meters' ? (
+                <div className="cc-detail-placeholder">
+                  <div style={{ textAlign: 'center', padding: 40, color: '#484f58' }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>⬛</div>
+                    <div style={{ fontSize: 13 }}>Meters are displayed above. Select another tab to view controls.</div>
+                  </div>
+                </div>
+              ) : (
+                renderActiveSection()
+              )}
             </div>
-          </section>
-
-          {/* Routing Matrix */}
-          <section className={activeTab === 'Routing' ? '' : 'hidden md:block'}>
-            <div className="panel">
-              <div className="panel-header">Input → Output Routing</div>
-              <div style={{ padding: 12, overflowX: 'auto' }}>
-                <RoutingMatrix
-                  routing={state.status.routing}
-                  onToggle={handleRoutingToggle}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Outputs */}
-          <section className={activeTab === 'Outputs' ? '' : 'hidden md:block'}>
-            <div className="panel">
-              <div className="panel-header">Output Channels</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
-                <Suspense fallback={<ChannelSkeleton count={8} />}>
-                  {OUTPUT_LABELS.map((label, i) => (
-                    <div key={i} style={{ background: '#161b22' }}>
-                      <OutputChannel
-                        index={i}
-                        label={label}
-                        gain_dB={outputGain(i)}
-                        muted={outputMuted(i)}
-                        delay_ms={outputDelay(i)}
-                        polarity={state.status.polarity[i] ?? false}
-                        eqFilters={outputEQ(i)}
-                        eqEnabled={state.status.eqEnable[i + 4] ?? true}
-                        hpf={outputHPF(i)}
-                        lpf={outputLPF(i)}
-                        limiter={outputLimiter(i)}
-                        limiterEnabled={state.status.limiterEnable[i] ?? false}
-                        onGainChange={dB => handleOutputGain(i, dB)}
-                        onMute={m => handleOutputMute(i, m)}
-                        onDelayChange={ms => handleOutputDelay(i, ms)}
-                        onPolarityToggle={() => {}}
-                        onEQChange={f => handleOutputEQChange(i, f)}
-                        onEQEnableToggle={() => {}}
-                        onHPFChange={(freq, ft) => handleHPFChange(i, freq, ft)}
-                        onLPFChange={(freq, ft) => handleLPFChange(i, freq, ft)}
-                        onLimiterChange={(field, v) => handleLimiterChange(i, field, v)}
-                        onLimiterEnableToggle={() => {}}
-                      />
-                    </div>
-                  ))}
-                </Suspense>
-              </div>
-            </div>
-          </section>
-
-          {/* Presets */}
-          <section className={activeTab === 'Presets' ? '' : 'hidden md:block'}>
-            <PresetBar
-              presetNames={state.presetNames}
-              connected={connected}
-              onRecall={handleRecallPreset}
-              onSave={handleSavePreset}
-            />
-          </section>
-
-        </div>
+          </div>
+        ) : (
+          /* ── Mobile tab-switched layout ── */
+          <div className="mobile-content">
+            {renderActiveSection()}
+          </div>
+        )}
       </main>
 
       {/* ── Footer ── */}
-      <footer style={{
-        borderTop: '1px solid #21262d',
-        padding: '10px 16px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: 8,
-        fontSize: 11, color: '#484f58',
-      }}>
+      <footer className="app-footer">
         <span>Ashly Protea 4.8SP — 9600 baud RS-232</span>
         {isDemo && (
           <span style={{ color: 'rgba(88,166,255,0.5)' }}>Simulated hardware — no serial connection</span>

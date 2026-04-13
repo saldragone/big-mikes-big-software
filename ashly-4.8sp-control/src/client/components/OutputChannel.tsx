@@ -378,9 +378,9 @@ export default function OutputChannel({
           </div>
         </div>
 
-        {/* EQ Curve */}
+        {/* EQ Curve — interactive: drag handles to adjust freq & gain */}
         <div className={`mt-1 transition-opacity duration-150 ${eqEnabled ? 'opacity-100' : 'opacity-40'}`}>
-          <EQCurve filters={eqFilters} />
+          <EQCurve filters={eqFilters} height={160} interactive={true} onFilterChange={onEQChange} />
         </div>
       </div>
 
