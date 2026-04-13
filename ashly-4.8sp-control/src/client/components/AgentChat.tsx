@@ -26,6 +26,7 @@ const TOOL_LABELS: Record<string, string> = {
   set_routing: 'Set Routing',
   recall_preset: 'Recall Preset',
   save_preset: 'Save Preset',
+  rename_channel: 'Rename Channel',
 };
 
 function ToolCallBadge({ tc }: { tc: ToolCall }) {

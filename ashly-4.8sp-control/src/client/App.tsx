@@ -170,17 +170,18 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
 
   const executeToolCall = useCallback((name: string, input: Record<string, any>) => {
     switch (name) {
-      case 'set_gain':     send({ type: 'setGain', node: input.node, dB: input.dB }); break;
-      case 'set_mute':     send({ type: 'mute', node: input.node, muted: input.muted }); break;
-      case 'set_eq':       send({ type: 'setEQ', filter: input.filter, freq: input.freq, q: input.q, gain: input.gain, filterType: input.filterType }); break;
-      case 'set_delay':    send({ type: 'setDelay', node: input.node, ms: input.ms }); break;
+      case 'set_gain':      send({ type: 'setGain', node: input.node, dB: input.dB }); break;
+      case 'set_mute':      send({ type: 'mute', node: input.node, muted: input.muted }); break;
+      case 'set_eq':        send({ type: 'setEQ', filter: input.filter, freq: input.freq, q: input.q, gain: input.gain, filterType: input.filterType }); break;
+      case 'set_delay':     send({ type: 'setDelay', node: input.node, ms: input.ms }); break;
       case 'set_crossover': send({ type: 'setCrossover', filter: input.filter, freq: input.freq, filterType: input.filterType }); break;
-      case 'set_limiter':  send({ type: 'setLimiter', node: input.node, threshold: input.threshold, ratio: input.ratio, attack: input.attack, release: input.release }); break;
-      case 'set_routing':  send({ type: 'setSource', output: input.output, input: input.input, enabled: input.enabled }); break;
+      case 'set_limiter':   send({ type: 'setLimiter', node: input.node, threshold: input.threshold, ratio: input.ratio, attack: input.attack, release: input.release }); break;
+      case 'set_routing':   send({ type: 'setSource', output: input.output, input: input.input, enabled: input.enabled }); break;
       case 'recall_preset': send({ type: 'recallPreset', index: input.index }); break;
-      case 'save_preset':  send({ type: 'savePreset', index: input.index, name: input.name }); break;
+      case 'save_preset':   send({ type: 'savePreset', index: input.index, name: input.name }); break;
+      case 'rename_channel': channelNames.renameChannel(input.node, input.name); break;
     }
-  }, [send]);
+  }, [send, channelNames]);
 
   const agent = useAgent({ getDeviceState, executeToolCall });
 
