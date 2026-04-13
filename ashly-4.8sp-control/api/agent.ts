@@ -104,12 +104,12 @@ async function ensureAgent(): Promise<string> {
 
   try {
     const list = await apiFetch('/agents?limit=50', 'GET');
-    const existing = list.data?.find((a: any) => a.name === 'Little Mike');
+    const existing = list.data?.find((a: any) => a.name === 'Little Mike v2');
     if (existing) { cachedAgentId = existing.id; return existing.id; }
   } catch {}
 
   const agent = await apiFetch('/agents', 'POST', {
-    name: 'Little Mike',
+    name: 'Little Mike v2',
     model: 'claude-sonnet-4-6',
     description: 'Live audio engineering agent for the Ashly Protea 4.8SP.',
     system: `You are Little Mike, a live audio engineering assistant embedded in Big Mike's Big Software — a control application for the Ashly Protea 4.8SP speaker processor.
@@ -127,7 +127,9 @@ You have FULL control over the 4.8SP through custom tools. The processor has:
 
 When the user asks you to make changes, USE THE TOOLS. Don't just describe — do it. Be direct, fast, and confident like a seasoned live sound engineer.
 
-The user will provide the current device state with each message. Be concise — you're working a live show.`,
+The user will provide the current device state with each message, including custom channel names. Users can nickname channels (e.g. "Vocals", "Kick", "Subs") — when they refer to a channel by its nickname, match it to the correct node number using the channelNames/channelNamesSummary in the device state.
+
+Be concise — you're working a live show.`,
     tools: [
       {
         type: 'agent_toolset_20260401',

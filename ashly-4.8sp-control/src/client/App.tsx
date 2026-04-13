@@ -149,6 +149,11 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
   // ── Agent (Little Mike) ────────────────────────────────────────────────
   const getDeviceState = useCallback(() => ({
     connected,
+    channelNames: channelNames.names,
+    channelNamesSummary: {
+      inputs: channelNames.inputLabels.map((n, i) => `Node ${i}: "${n}"`).join(', '),
+      outputs: channelNames.outputLabels.map((n, i) => `Node ${i + 4}: "${n}"`).join(', '),
+    },
     gains: state.gains,
     mutes: state.status.mute,
     delays: state.delays,
@@ -161,7 +166,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
     polarity: state.status.polarity,
     meters: state.meters,
     presetNames: state.presetNames,
-  }), [state, connected]);
+  }), [state, connected, channelNames.names]);
 
   const executeToolCall = useCallback((name: string, input: Record<string, any>) => {
     switch (name) {
@@ -385,7 +390,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
 
             {deskTab === 'Routing' && (
               <div style={{ padding: 16, maxWidth: 800, margin: '0 auto' }}>
-                <RoutingMatrix routing={state.status.routing} onToggle={handleRoutingToggle} />
+                <RoutingMatrix routing={state.status.routing} inputLabels={channelNames.inputLabels} outputLabels={channelNames.outputLabels} onToggle={handleRoutingToggle} />
               </div>
             )}
 
@@ -429,7 +434,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
             )}
 
             {mobileTab === 'Routing' && (
-              <RoutingMatrix routing={state.status.routing} onToggle={handleRoutingToggle} />
+              <RoutingMatrix routing={state.status.routing} inputLabels={channelNames.inputLabels} outputLabels={channelNames.outputLabels} onToggle={handleRoutingToggle} />
             )}
 
             {mobileTab === 'Outputs' && (
