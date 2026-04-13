@@ -16,6 +16,8 @@ import MixerStrip from './components/MixerStrip';
 import RoutingMatrix from './components/RoutingMatrix';
 import PresetBar from './components/PresetBar';
 import ChannelDetailModal from './components/ChannelDetailModal';
+import AgentChat from './components/AgentChat';
+import { useAgent } from './hooks/useAgent';
 import { INPUT_LABELS, OUTPUT_LABELS, inputEqFilterBase, outputEqFilterBase } from '../lib/constants';
 
 const InputChannel  = lazy(() => import('./components/InputChannel'));
@@ -138,7 +140,42 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
     open: false, channelType: 'input', channelIndex: 0, section: 'eq',
   });
 
+  const [chatOpen, setChatOpen] = useState(false);
+
   useEffect(() => { localStorage.setItem('ashly-view-mode', viewMode); }, [viewMode]);
+
+  // ── Agent (Little Mike) ────────────────────────────────────────────────
+  const getDeviceState = useCallback(() => ({
+    connected,
+    gains: state.gains,
+    mutes: state.status.mute,
+    delays: state.delays,
+    eqFilters: state.eqFilters,
+    eqEnable: state.status.eqEnable,
+    crossovers: state.crossovers,
+    limiters: state.limiters,
+    limiterEnable: state.status.limiterEnable,
+    routing: state.status.routing,
+    polarity: state.status.polarity,
+    meters: state.meters,
+    presetNames: state.presetNames,
+  }), [state, connected]);
+
+  const executeToolCall = useCallback((name: string, input: Record<string, any>) => {
+    switch (name) {
+      case 'set_gain':     send({ type: 'setGain', node: input.node, dB: input.dB }); break;
+      case 'set_mute':     send({ type: 'mute', node: input.node, muted: input.muted }); break;
+      case 'set_eq':       send({ type: 'setEQ', filter: input.filter, freq: input.freq, q: input.q, gain: input.gain, filterType: input.filterType }); break;
+      case 'set_delay':    send({ type: 'setDelay', node: input.node, ms: input.ms }); break;
+      case 'set_crossover': send({ type: 'setCrossover', filter: input.filter, freq: input.freq, filterType: input.filterType }); break;
+      case 'set_limiter':  send({ type: 'setLimiter', node: input.node, threshold: input.threshold, ratio: input.ratio, attack: input.attack, release: input.release }); break;
+      case 'set_routing':  send({ type: 'setSource', output: input.output, input: input.input, enabled: input.enabled }); break;
+      case 'recall_preset': send({ type: 'recallPreset', index: input.index }); break;
+      case 'save_preset':  send({ type: 'savePreset', index: input.index, name: input.name }); break;
+    }
+  }, [send]);
+
+  const agent = useAgent({ getDeviceState, executeToolCall });
 
   // ── Data helpers ────────────────────────────────────────────────────────
   const inputGain    = (i: number) => state.gains.find(g => g.node === i)?.gain_dB ?? 0;
@@ -461,6 +498,16 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
         limiterEnabled={modal.channelType === 'output' ? (state.status.limiterEnable[modal.channelIndex] ?? false) : false}
         onLimiterChange={(field, v) => handleLimiterChange(modal.channelIndex, field, v)}
         onLimiterEnableToggle={() => {}}
+      />
+
+      {/* ── Little Mike Chat ── */}
+      <AgentChat
+        messages={agent.messages}
+        loading={agent.loading}
+        onSend={agent.sendMessage}
+        onClear={agent.clearChat}
+        collapsed={!chatOpen}
+        onToggle={() => setChatOpen(o => !o)}
       />
 
       {/* ── Footer ── */}
