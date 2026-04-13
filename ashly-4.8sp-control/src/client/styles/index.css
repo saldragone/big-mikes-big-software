@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    @apply bg-[#1e1e1e] text-gray-100 font-mono;
+    overscroll-behavior: none;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track { @apply bg-[#252525]; }
+  ::-webkit-scrollbar-thumb { @apply bg-[#555] rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-[#777]; }
+}
+
+@layer components {
+  /* Panel card */
+  .panel {
+    @apply bg-[#252525] border border-[#333] rounded-lg;
+  }
+
+  .panel-header {
+    @apply px-3 py-2 bg-[#2c2c2c] border-b border-[#333] rounded-t-lg
+           text-xs font-semibold uppercase tracking-widest text-gray-400;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5
+           rounded px-3 py-1.5 text-sm font-medium
+           transition-colors duration-100
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/70
+           disabled:opacity-40 disabled:pointer-events-none
+           min-h-[36px] touch-manipulation;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand-dim active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent border border-[#444] text-gray-300
+           hover:bg-[#333] active:bg-[#3a3a3a];
+  }
+
+  .btn-danger {
+    @apply btn bg-red-700 text-white hover:bg-red-600;
+  }
+
+  .btn-mute {
+    @apply btn bg-[#333] text-gray-400 border border-[#444]
+           hover:bg-[#444] data-[muted=true]:bg-red-700 data-[muted=true]:text-white
+           data-[muted=true]:border-red-600;
+  }
+
+  .btn-active {
+    @apply btn bg-[#3a3a3a] border border-brand/60 text-brand;
+  }
+
+  /* Form elements */
+  .input {
+    @apply bg-[#1e1e1e] border border-[#444] rounded px-2 py-1 text-sm
+           text-gray-200 focus:outline-none focus:border-brand/70
+           w-full min-h-[32px];
+  }
+
+  .select {
+    @apply input cursor-pointer appearance-none pr-7 bg-no-repeat
+           bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0iIzc3NyI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNNS4yOTMgNy43MDdhMSAxIDAgMDExLjQxNCAwTDEwIDEwLjk5M2wzLjI5My0zLjI4NmExIDEgMCAxMTEuNDE0IDEuNDE0bC00IDRhMSAxIDAgMDEtMS40MTQgMEw1LjI5MyA5LjEyMWExIDEgMCAwMTAtMS40MTR6IiBjbGlwLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=')]
+           bg-[length:20px] bg-[right_2px_center];
+  }
+
+  /* Fader track + thumb */
+  .fader-range {
+    @apply appearance-none w-full h-1.5 rounded-full bg-[#444]
+           focus:outline-none cursor-pointer;
+  }
+  .fader-range::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 rounded-full bg-brand cursor-grab active:cursor-grabbing shadow;
+    -webkit-appearance: none;
+  }
+  .fader-range::-moz-range-thumb {
+    @apply w-4 h-4 rounded-full bg-brand cursor-grab border-0;
+  }
+
+  /* Meter bar segments */
+  .meter-bar {
+    @apply h-full rounded-sm transition-none;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-0.5;
+  }
+}
+
+@layer utilities {
+  /* Touch target helper */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}

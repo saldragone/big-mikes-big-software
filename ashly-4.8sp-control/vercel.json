@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm install && npm run client:build",
+  "outputDirectory": "dist/client",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "VITE_DEMO_MODE": "true"
+  }
+}
