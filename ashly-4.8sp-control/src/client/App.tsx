@@ -18,6 +18,7 @@ import PresetBar from './components/PresetBar';
 import ChannelDetailModal from './components/ChannelDetailModal';
 import AgentChat from './components/AgentChat';
 import { useAgent } from './hooks/useAgent';
+import { useChannelNames } from './hooks/useChannelNames';
 import { INPUT_LABELS, OUTPUT_LABELS, inputEqFilterBase, outputEqFilterBase } from '../lib/constants';
 
 const InputChannel  = lazy(() => import('./components/InputChannel'));
@@ -141,6 +142,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
   });
 
   const [chatOpen, setChatOpen] = useState(false);
+  const channelNames = useChannelNames();
 
   useEffect(() => { localStorage.setItem('ashly-view-mode', viewMode); }, [viewMode]);
 
@@ -332,7 +334,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
                 <div className="mixer-group">
                   <div className="mixer-group-label">Inputs</div>
                   <div className="mixer-strips">
-                    {INPUT_LABELS.map((label, i) => (
+                    {channelNames.inputLabels.map((label, i) => (
                       <MixerStrip key={`in-${i}`}
                         channelType="input" index={i} label={label}
                         gain_dB={inputGain(i)} muted={inputMuted(i)}
@@ -343,6 +345,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
                         onGainChange={dB => handleInputGain(i, dB)}
                         onMute={m => handleInputMute(i, m)}
                         onOpenDetail={section => openModal('input', i, section)}
+                        onRename={name => channelNames.renameChannel(i, name)}
                       />
                     ))}
                   </div>
@@ -355,7 +358,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
                 <div className="mixer-group">
                   <div className="mixer-group-label">Outputs</div>
                   <div className="mixer-strips">
-                    {OUTPUT_LABELS.map((label, i) => (
+                    {channelNames.outputLabels.map((label, i) => (
                       <MixerStrip key={`out-${i}`}
                         channelType="output" index={i} label={label}
                         gain_dB={outputGain(i)} muted={outputMuted(i)}
@@ -372,6 +375,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
                         onMute={m => handleOutputMute(i, m)}
                         onOpenDetail={section => openModal('output', i, section)}
                         onPolarityToggle={() => {}}
+                        onRename={name => channelNames.renameChannel(i + 4, name)}
                       />
                     ))}
                   </div>

@@ -15,7 +15,7 @@ import {
   dataRequest, presetNamesRequest, deviceNameRequest,
 } from '../lib/ashly-protocol.js';
 import { MSG } from '../lib/constants.js';
-import { initSchema, getAllPresets, upsertPreset } from '../db/schema.js';
+import { initSchema, getAllPresets, upsertPreset, getAllChannelNames, upsertChannelName } from '../db/schema.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3000);
@@ -65,6 +65,29 @@ app.put('/api/presets', async (req, res) => {
       res.status(400).json({ error: 'id must be 0–29' }); return;
     }
     const row = await upsertPreset(id, String(name ?? '').slice(0, 20), state);
+    res.json(row);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// ─── Channel Names API ───────────────────────────────────────────────────────
+app.get('/api/channel-names', async (_req, res) => {
+  try {
+    const names = await getAllChannelNames();
+    res.json(names);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+app.put('/api/channel-names', async (req, res) => {
+  try {
+    const { node, name } = req.body as { node: number; name: string };
+    if (typeof node !== 'number' || node < 0 || node > 11) {
+      res.status(400).json({ error: 'node must be 0–11' }); return;
+    }
+    const row = await upsertChannelName(node, String(name ?? '').slice(0, 20));
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: String(err) });

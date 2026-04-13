@@ -316,9 +316,17 @@
 
   /* Channel label */
   .strip-label {
-    width: 100%; padding: 4px 0; text-align: center;
-    font-size: 10px; font-weight: 700; color: white;
-    letter-spacing: 0.04em; text-transform: uppercase;
+    width: 100%; padding: 4px 2px; text-align: center;
+    font-size: 9px; font-weight: 700; color: white;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    flex-shrink: 0; cursor: default;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .strip-label-input {
+    width: 100%; padding: 3px 4px; text-align: center;
+    font-size: 9px; font-weight: 700; color: white;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.3); outline: none;
     flex-shrink: 0;
   }
 

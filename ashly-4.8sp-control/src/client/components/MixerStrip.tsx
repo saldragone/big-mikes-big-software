@@ -46,6 +46,8 @@ interface MixerStripProps {
   onMute: (muted: boolean) => void;
   onOpenDetail: (section: 'eq' | 'delay' | 'crossover' | 'limiter') => void;
   onPolarityToggle?: () => void;
+  /** Called when user renames the channel */
+  onRename?: (name: string) => void;
 }
 
 // ── Meter constants ──────────────────────────────────────────────────────────
@@ -77,11 +79,13 @@ export default function MixerStrip({
   channelType, index, label, gain_dB, muted, delay_ms,
   eqFilters, eqEnabled, polarity, hpfActive, lpfActive, limiterEnabled,
   meterLevel, meterClipped, gainReduction = 0,
-  onGainChange, onMute, onOpenDetail, onPolarityToggle,
+  onGainChange, onMute, onOpenDetail, onPolarityToggle, onRename,
 }: MixerStripProps) {
   const isOutput = channelType === 'output';
   const [inputText, setInputText] = useState(gain_dB.toFixed(1));
   const [editing, setEditing] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(label);
 
   // Smooth meter display
   const displayLevelRef = useRef(DB_MIN);
@@ -215,10 +219,36 @@ export default function MixerStrip({
           onClick={() => onMute(!muted)} aria-pressed={muted}>M</button>
       </div>
 
-      {/* ── Channel name ── */}
-      <div className="strip-label" style={{ background: labelBg }}>
-        {channelType === 'input' ? `In ${label}` : label}
-      </div>
+      {/* ── Channel name (double-click to rename) ── */}
+      {editingName ? (
+        <input
+          className="strip-label-input"
+          style={{ background: labelBg }}
+          value={nameDraft}
+          maxLength={20}
+          autoFocus
+          onChange={e => setNameDraft(e.target.value)}
+          onBlur={() => {
+            setEditingName(false);
+            if (nameDraft.trim() && nameDraft !== label && onRename) {
+              onRename(nameDraft.trim());
+            }
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+            if (e.key === 'Escape') { setNameDraft(label); setEditingName(false); }
+          }}
+        />
+      ) : (
+        <div
+          className="strip-label"
+          style={{ background: labelBg }}
+          onDoubleClick={() => { setNameDraft(label); setEditingName(true); }}
+          title="Double-click to rename"
+        >
+          {label}
+        </div>
+      )}
     </div>
   );
 }
