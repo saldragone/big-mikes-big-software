@@ -1,16 +1,16 @@
 /**
- * MixerStrip — A compact Logic Pro-style channel strip.
+ * MixerStrip — Logic Pro-style channel strip with inline meter.
  *
- * Top-to-bottom layout:
- *   EQ curve thumbnail (clickable)
+ * Layout (top → bottom):
+ *   EQ thumbnail (clickable)
  *   Info pills: delay / xover / limiter (clickable)
- *   Vertical fader
+ *   Fader + Meter (side by side)
  *   dB readout
- *   Mute button
+ *   Mute / Polarity buttons
  *   Channel label
  */
 
-import { useState, useCallback, ChangeEvent, KeyboardEvent } from 'react';
+import { useState, useCallback, useRef, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import EQCurve from './EQCurve';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -37,10 +37,31 @@ interface MixerStripProps {
   hpfActive?: boolean;
   lpfActive?: boolean;
   limiterEnabled?: boolean;
+  /** Meter level in dBu for this channel */
+  meterLevel: number;
+  meterClipped: boolean;
+  /** Gain reduction in dB (outputs only) */
+  gainReduction?: number;
   onGainChange: (dB: number) => void;
   onMute: (muted: boolean) => void;
   onOpenDetail: (section: 'eq' | 'delay' | 'crossover' | 'limiter') => void;
   onPolarityToggle?: () => void;
+}
+
+// ── Meter constants ──────────────────────────────────────────────────────────
+
+const DB_MIN = -42;
+const DB_MAX = 20;
+const DB_RANGE = DB_MAX - DB_MIN;
+
+function dbToPercent(dBu: number): number {
+  return Math.max(0, Math.min(100, ((dBu - DB_MIN) / DB_RANGE) * 100));
+}
+
+function meterColor(dBu: number): string {
+  if (dBu > -3) return '#f85149';
+  if (dBu > -10) return '#d29922';
+  return '#3fb950';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -55,13 +76,37 @@ function snapToStep(v: number, step: number, min: number) {
 export default function MixerStrip({
   channelType, index, label, gain_dB, muted, delay_ms,
   eqFilters, eqEnabled, polarity, hpfActive, lpfActive, limiterEnabled,
+  meterLevel, meterClipped, gainReduction = 0,
   onGainChange, onMute, onOpenDetail, onPolarityToggle,
 }: MixerStripProps) {
   const isOutput = channelType === 'output';
   const [inputText, setInputText] = useState(gain_dB.toFixed(1));
   const [editing, setEditing] = useState(false);
 
-  // Sync text when not editing
+  // Smooth meter display
+  const displayLevelRef = useRef(DB_MIN);
+  const [displayLevel, setDisplayLevel] = useState(DB_MIN);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    let lastTs = 0;
+    const animate = (ts: number) => {
+      const dt = lastTs ? Math.min((ts - lastTs) / 1000, 0.1) : 0;
+      lastTs = ts;
+      const target = meterLevel;
+      const current = displayLevelRef.current;
+      if (target >= current) {
+        displayLevelRef.current = target;
+      } else {
+        displayLevelRef.current = Math.max(DB_MIN, current - 20 * dt);
+      }
+      setDisplayLevel(displayLevelRef.current);
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [meterLevel]);
+
   if (!editing && gain_dB.toFixed(1) !== inputText) setInputText(gain_dB.toFixed(1));
 
   const commitText = useCallback(() => {
@@ -82,52 +127,68 @@ export default function MixerStrip({
     onGainChange(v);
   }, [onGainChange]);
 
-  // Color coding
-  const stripBorder = muted ? 'rgba(248,81,73,0.3)' : isOutput ? 'rgba(63,185,80,0.2)' : 'rgba(88,166,255,0.2)';
   const labelBg = muted ? '#f85149' : isOutput ? '#238636' : '#1f6feb';
+  const meterPct = dbToPercent(displayLevel);
+  const meterCol = meterColor(displayLevel);
 
   return (
-    <div className="mixer-strip" style={{ borderTopColor: stripBorder }}>
+    <div className="mixer-strip">
 
-      {/* ── EQ thumbnail — click to open EQ modal ── */}
+      {/* ── EQ thumbnail ── */}
       <button className="strip-eq-thumb" onClick={() => onOpenDetail('eq')}
         title="Edit EQ" aria-label={`Edit EQ for ${channelType} ${label}`}>
-        <EQCurve filters={eqFilters} height={52} className={eqEnabled ? '' : 'opacity-30'} />
+        <EQCurve filters={eqFilters} height={44} className={eqEnabled ? '' : 'opacity-30'} />
       </button>
 
-      {/* ── Info pills — click to open respective modal ── */}
+      {/* ── Info pills ── */}
       <div className="strip-pills">
         <button className="strip-pill" onClick={() => onOpenDetail('delay')} title="Delay">
-          <span className="strip-pill-value">{delay_ms > 0 ? `${delay_ms.toFixed(1)}ms` : 'Dly'}</span>
+          {delay_ms > 0 ? `${delay_ms.toFixed(0)}ms` : 'DLY'}
         </button>
         {isOutput && (
           <>
             <button className={`strip-pill ${hpfActive || lpfActive ? 'active' : ''}`}
-              onClick={() => onOpenDetail('crossover')} title="Crossover">
-              X
-            </button>
+              onClick={() => onOpenDetail('crossover')} title="Crossover">X</button>
             <button className={`strip-pill ${limiterEnabled ? 'active' : ''}`}
-              onClick={() => onOpenDetail('limiter')} title="Limiter">
-              L
-            </button>
+              onClick={() => onOpenDetail('limiter')} title="Limiter">L</button>
           </>
         )}
       </div>
 
-      {/* ── Fader ── */}
-      <div className="strip-fader-container">
-        <input
-          type="range"
-          className="strip-fader"
-          min={-40}
-          max={12}
-          step={0.1}
-          value={gain_dB}
-          onChange={handleFaderChange}
-          aria-label={`${channelType} ${label} gain`}
-        />
-        {/* 0 dB tick */}
-        <div className="strip-fader-zero" style={{ bottom: `${((0 - (-40)) / (12 - (-40))) * 100}%` }} />
+      {/* ── Fader + Meter area ── */}
+      <div className="strip-fader-meter">
+        {/* Meter bar */}
+        <div className="strip-meter-track">
+          <div className="strip-meter-fill" style={{
+            height: `${meterPct}%`,
+            background: meterCol,
+          }} />
+          {/* Gain reduction overlay */}
+          {isOutput && gainReduction > 0 && (
+            <div className="strip-meter-gr" style={{
+              height: `${Math.min(gainReduction / DB_RANGE * 100, meterPct)}%`,
+              top: `${100 - meterPct}%`,
+            }} />
+          )}
+          {/* Clip indicator */}
+          <div className={`strip-clip-led ${meterClipped ? 'clipped' : ''}`} />
+        </div>
+
+        {/* Fader */}
+        <div className="strip-fader-wrap">
+          <input
+            type="range"
+            className="strip-fader"
+            min={-40}
+            max={12}
+            step={0.1}
+            value={gain_dB}
+            onChange={handleFaderChange}
+            aria-label={`${channelType} ${label} gain`}
+          />
+          {/* 0 dB tick */}
+          <div className="strip-fader-zero" style={{ bottom: `${((0 - (-40)) / (12 - (-40))) * 100}%` }} />
+        </div>
       </div>
 
       {/* ── dB readout ── */}
@@ -144,26 +205,14 @@ export default function MixerStrip({
         aria-label={`${channelType} ${label} dB`}
       />
 
-      {/* ── Buttons row: polarity + mute ── */}
+      {/* ── Buttons row ── */}
       <div className="strip-buttons">
         {isOutput && onPolarityToggle && (
-          <button
-            className={`strip-btn-polarity ${polarity ? 'active' : ''}`}
-            onClick={onPolarityToggle}
-            title="Polarity"
-            aria-pressed={polarity}
-          >
-            &#x03A6;
-          </button>
+          <button className={`strip-btn-polarity ${polarity ? 'active' : ''}`}
+            onClick={onPolarityToggle} title="Polarity">&#x03A6;</button>
         )}
-        <button
-          className={`strip-btn-mute ${muted ? 'muted' : ''}`}
-          onClick={() => onMute(!muted)}
-          aria-pressed={muted}
-          aria-label={muted ? 'Unmute' : 'Mute'}
-        >
-          M
-        </button>
+        <button className={`strip-btn-mute ${muted ? 'muted' : ''}`}
+          onClick={() => onMute(!muted)} aria-pressed={muted}>M</button>
       </div>
 
       {/* ── Channel name ── */}

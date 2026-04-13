@@ -327,64 +327,56 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
              ═══════════════════════════════════════════════════════════════════ */
           <div className="desk-layout">
             {deskTab === 'Mixer' && (
-              <>
-                {/* Meters across top */}
-                <div className="desk-meters">
-                  <MeterBridge
-                    levels={state.meters.levels}
-                    gainReduction={state.meters.gainReduction}
-                    inputLabels={[...INPUT_LABELS]}
-                    outputLabels={[...OUTPUT_LABELS]}
-                  />
-                </div>
-
-                {/* Mixer strips */}
-                <div className="mixer-console">
-                  {/* Inputs */}
-                  <div className="mixer-group">
-                    <div className="mixer-group-label">Inputs</div>
-                    <div className="mixer-strips">
-                      {INPUT_LABELS.map((label, i) => (
-                        <MixerStrip key={`in-${i}`}
-                          channelType="input" index={i} label={label}
-                          gain_dB={inputGain(i)} muted={inputMuted(i)}
-                          delay_ms={inputDelay(i)} eqFilters={inputEQ(i)}
-                          eqEnabled={state.status.eqEnable[i] ?? true}
-                          onGainChange={dB => handleInputGain(i, dB)}
-                          onMute={m => handleInputMute(i, m)}
-                          onOpenDetail={section => openModal('input', i, section)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="mixer-divider" />
-
-                  {/* Outputs */}
-                  <div className="mixer-group">
-                    <div className="mixer-group-label">Outputs</div>
-                    <div className="mixer-strips">
-                      {OUTPUT_LABELS.map((label, i) => (
-                        <MixerStrip key={`out-${i}`}
-                          channelType="output" index={i} label={label}
-                          gain_dB={outputGain(i)} muted={outputMuted(i)}
-                          delay_ms={outputDelay(i)} eqFilters={outputEQ(i)}
-                          eqEnabled={state.status.eqEnable[i + 4] ?? true}
-                          polarity={state.status.polarity[i] ?? false}
-                          hpfActive={!outputHPF(i)?.isOff}
-                          lpfActive={!outputLPF(i)?.isOff}
-                          limiterEnabled={state.status.limiterEnable[i] ?? false}
-                          onGainChange={dB => handleOutputGain(i, dB)}
-                          onMute={m => handleOutputMute(i, m)}
-                          onOpenDetail={section => openModal('output', i, section)}
-                          onPolarityToggle={() => {}}
-                        />
-                      ))}
-                    </div>
+              <div className="mixer-console">
+                {/* Inputs */}
+                <div className="mixer-group">
+                  <div className="mixer-group-label">Inputs</div>
+                  <div className="mixer-strips">
+                    {INPUT_LABELS.map((label, i) => (
+                      <MixerStrip key={`in-${i}`}
+                        channelType="input" index={i} label={label}
+                        gain_dB={inputGain(i)} muted={inputMuted(i)}
+                        delay_ms={inputDelay(i)} eqFilters={inputEQ(i)}
+                        eqEnabled={state.status.eqEnable[i] ?? true}
+                        meterLevel={state.meters.levels[i]?.level_dBu ?? -42}
+                        meterClipped={state.meters.levels[i]?.clipped ?? false}
+                        onGainChange={dB => handleInputGain(i, dB)}
+                        onMute={m => handleInputMute(i, m)}
+                        onOpenDetail={section => openModal('input', i, section)}
+                      />
+                    ))}
                   </div>
                 </div>
-              </>
+
+                {/* Divider */}
+                <div className="mixer-divider" />
+
+                {/* Outputs */}
+                <div className="mixer-group">
+                  <div className="mixer-group-label">Outputs</div>
+                  <div className="mixer-strips">
+                    {OUTPUT_LABELS.map((label, i) => (
+                      <MixerStrip key={`out-${i}`}
+                        channelType="output" index={i} label={label}
+                        gain_dB={outputGain(i)} muted={outputMuted(i)}
+                        delay_ms={outputDelay(i)} eqFilters={outputEQ(i)}
+                        eqEnabled={state.status.eqEnable[i + 4] ?? true}
+                        polarity={state.status.polarity[i] ?? false}
+                        hpfActive={!outputHPF(i)?.isOff}
+                        lpfActive={!outputLPF(i)?.isOff}
+                        limiterEnabled={state.status.limiterEnable[i] ?? false}
+                        meterLevel={state.meters.levels[i + 4]?.level_dBu ?? -42}
+                        meterClipped={state.meters.levels[i + 4]?.clipped ?? false}
+                        gainReduction={state.meters.gainReduction[i] ?? 0}
+                        onGainChange={dB => handleOutputGain(i, dB)}
+                        onMute={m => handleOutputMute(i, m)}
+                        onOpenDetail={section => openModal('output', i, section)}
+                        onPolarityToggle={() => {}}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
 
             {deskTab === 'Routing' && (

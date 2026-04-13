@@ -151,91 +151,108 @@
      DESKTOP MIXER LAYOUT
      ═══════════════════════════════════════════════════════════════════════════ */
   .desk-layout {
-    display: flex; flex-direction: column; height: calc(100vh - 130px);
+    display: flex; flex-direction: column;
+    height: calc(100vh - 110px); /* fit below header */
     overflow: hidden;
   }
 
-  .desk-meters {
-    padding: 6px 12px; flex-shrink: 0; border-bottom: 1px solid #21262d;
-    background: rgba(13,17,23,0.5);
-  }
-
   .mixer-console {
-    flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
-    padding: 0;
-    background: linear-gradient(180deg, #0d1117 0%, #0a0d12 100%);
-    /* Smooth horizontal scroll */
-    scroll-behavior: smooth;
+    flex: 1; display: flex;
+    overflow-x: auto; overflow-y: hidden;
+    background: #0a0d12;
     -webkit-overflow-scrolling: touch;
   }
 
   .mixer-group { display: flex; flex-direction: column; flex-shrink: 0; }
   .mixer-group-label {
-    padding: 5px 14px; font-size: 10px; font-weight: 700;
+    padding: 4px 14px; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.08em; color: #6e7681;
     border-bottom: 1px solid #21262d;
     background: rgba(22,27,34,0.4);
+    flex-shrink: 0;
   }
-  .mixer-strips { display: flex; flex: 1; }
+  .mixer-strips { display: flex; flex: 1; min-height: 0; }
   .mixer-divider {
     width: 2px; background: #21262d; margin: 0; flex-shrink: 0;
   }
 
   /* ── Individual mixer strip ── */
   .mixer-strip {
-    width: 110px; min-width: 110px; flex-shrink: 0;
+    width: 105px; min-width: 105px; flex-shrink: 0;
     display: flex; flex-direction: column; align-items: center;
     border-right: 1px solid #161b22;
     background: #0d1117;
     transition: background 0.1s;
+    min-height: 0; /* allow flex shrink */
   }
   .mixer-strip:hover { background: #111620; }
 
   /* EQ thumbnail */
   .strip-eq-thumb {
-    width: 100%; height: 56px; cursor: pointer; padding: 3px 4px;
+    width: 100%; height: 44px; cursor: pointer; padding: 2px 3px;
     border: none; background: transparent;
     border-bottom: 1px solid #161b22;
-    transition: background 0.1s;
+    transition: background 0.1s; flex-shrink: 0;
   }
   .strip-eq-thumb:hover { background: rgba(88,166,255,0.06); }
 
   /* Info pills */
   .strip-pills {
-    display: flex; gap: 3px; padding: 4px 4px; width: 100%; justify-content: center;
+    display: flex; gap: 2px; padding: 3px 3px; width: 100%; justify-content: center;
     border-bottom: 1px solid #161b22;
     flex-shrink: 0;
   }
   .strip-pill {
-    font-size: 9px; font-weight: 600; padding: 2px 6px;
+    font-size: 8px; font-weight: 600; padding: 1px 5px;
     border-radius: 3px; border: 1px solid #21262d; background: transparent;
     color: #484f58; cursor: pointer; transition: all 0.1s;
-    text-transform: uppercase; letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
   .strip-pill:hover { border-color: #30363d; color: #8b949e; background: rgba(255,255,255,0.03); }
   .strip-pill.active { border-color: rgba(88,166,255,0.3); color: #58a6ff; background: rgba(88,166,255,0.06); }
-  .strip-pill-value { font-family: 'SF Mono', Menlo, monospace; font-size: 9px; }
 
-  /* Vertical fader */
-  .strip-fader-container {
-    position: relative; flex: 1; width: 100%;
+  /* ── Fader + Meter side by side ── */
+  .strip-fader-meter {
+    flex: 1; width: 100%; min-height: 0;
+    display: flex; align-items: stretch;
+    padding: 4px 6px; gap: 4px;
+  }
+
+  /* Meter track (thin bar left of fader) */
+  .strip-meter-track {
+    width: 8px; flex-shrink: 0; border-radius: 2px;
+    background: #161b22; position: relative; overflow: hidden;
+  }
+  .strip-meter-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    border-radius: 2px; transition: none;
+  }
+  .strip-meter-gr {
+    position: absolute; left: 0; right: 0;
+    background: rgba(88,166,255,0.5); border-radius: 2px;
+  }
+  .strip-clip-led {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: #21262d; border-radius: 2px 2px 0 0;
+  }
+  .strip-clip-led.clipped { background: #f85149; box-shadow: 0 0 4px #f85149; }
+
+  /* Fader wrapper */
+  .strip-fader-wrap {
+    flex: 1; position: relative;
     display: flex; align-items: center; justify-content: center;
-    padding: 6px 0; min-height: 120px;
   }
   .strip-fader {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    appearance: slider-vertical;
-    -webkit-appearance: slider-vertical;
-    width: 32px; height: 100%;
+    writing-mode: vertical-lr; direction: rtl;
+    appearance: slider-vertical; -webkit-appearance: slider-vertical;
+    width: 28px; height: 100%;
     background: transparent; cursor: pointer;
   }
   .strip-fader::-webkit-slider-runnable-track {
-    width: 4px; background: #21262d; border-radius: 2px;
+    width: 3px; background: #21262d; border-radius: 2px;
   }
   .strip-fader::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 28px; height: 12px;
-    border-radius: 2px;
+    -webkit-appearance: none; width: 26px; height: 10px; border-radius: 2px;
     background: linear-gradient(180deg, #8b949e, #6e7681);
     border: 1px solid #484f58; cursor: grab;
     box-shadow: 0 1px 3px rgba(0,0,0,0.5);
@@ -245,16 +262,16 @@
     border-color: #58a6ff;
   }
   .strip-fader::-moz-range-track {
-    width: 4px; background: #21262d; border-radius: 2px;
+    width: 3px; background: #21262d; border-radius: 2px;
   }
   .strip-fader::-moz-range-thumb {
-    width: 28px; height: 12px; border-radius: 2px;
+    width: 26px; height: 10px; border-radius: 2px;
     background: linear-gradient(180deg, #8b949e, #6e7681);
     border: 1px solid #484f58; cursor: grab;
   }
   .strip-fader:focus { outline: none; }
   .strip-fader-zero {
-    position: absolute; left: 12px; right: 12px; height: 1px;
+    position: absolute; left: 4px; right: 4px; height: 1px;
     background: #30363d; pointer-events: none;
   }
 
