@@ -90,11 +90,11 @@ export default function LimiterControls({
 
       {/* Enable toggle */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Limiter</span>
+        <span className="text-xs font-semibold text-[#8b949e] uppercase tracking-wider">Limiter</span>
         <button
-          className={`text-xs px-3 py-1 rounded border min-h-[44px] min-w-[64px] font-semibold transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50 ${
+          className={`text-xs px-3 py-1 rounded border min-h-[44px] min-w-[64px] font-semibold transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#58a6ff]/50 ${
             enabled
-              ? 'bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600/30'
+              ? 'bg-[#1f6feb]/15 border-[#58a6ff]/40 text-[#58a6ff] hover:bg-[#1f6feb]/25'
               : 'btn-ghost'
           }`}
           onClick={onEnabledToggle}
@@ -109,13 +109,13 @@ export default function LimiterControls({
 
         {/* Threshold */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-[10px] text-gray-500 uppercase tracking-wider">
+          <label className="text-[10px] text-[#8b949e] uppercase tracking-wider">
             Threshold
           </label>
           <div className="flex items-center gap-2">
             <input
               type="range"
-              className="flex-1 h-2 accent-orange-500"
+              className="flex-1 h-2 accent-[#58a6ff]"
               min={THRESHOLD_MIN}
               max={THRESHOLD_MAX}
               step={0.5}
@@ -143,10 +143,10 @@ export default function LimiterControls({
                 onKeyDown={handleThresholdKeyDown}
                 aria-label="Limiter threshold value"
               />
-              <span className="text-[10px] text-gray-500 font-mono">dBu</span>
+              <span className="text-[10px] text-[#8b949e] font-mono">dBu</span>
             </div>
           </div>
-          <div className="flex justify-between text-[9px] text-gray-600 font-mono px-0.5">
+          <div className="flex justify-between text-[9px] text-[#484f58] font-mono px-0.5">
             <span>-20</span>
             <span>0</span>
             <span>+20</span>
@@ -158,7 +158,7 @@ export default function LimiterControls({
 
           {/* Ratio */}
           <div className="flex flex-col gap-0.5">
-            <label className="text-[10px] text-gray-500 uppercase tracking-wider">Ratio</label>
+            <label className="text-[10px] text-[#8b949e] uppercase tracking-wider">Ratio</label>
             <select
               className="select text-xs min-h-[44px]"
               value={safeRatio}
@@ -174,7 +174,7 @@ export default function LimiterControls({
 
           {/* Attack */}
           <div className="flex flex-col gap-0.5">
-            <label className="text-[10px] text-gray-500 uppercase tracking-wider">
+            <label className="text-[10px] text-[#8b949e] uppercase tracking-wider">
               Attack <span className="normal-case">(ms/dB)</span>
             </label>
             <select
@@ -192,7 +192,7 @@ export default function LimiterControls({
 
           {/* Release — spans full width on mobile (2-col grid makes it fill), normal on sm+ */}
           <div className="flex flex-col gap-0.5 col-span-2 sm:col-span-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-wider">
+            <label className="text-[10px] text-[#8b949e] uppercase tracking-wider">
               Release <span className="normal-case">(ms/dB)</span>
             </label>
             <select

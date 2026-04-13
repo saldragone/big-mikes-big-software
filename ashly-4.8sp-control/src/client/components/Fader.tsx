@@ -153,7 +153,7 @@ export default function Fader({
     >
       {/* Label */}
       {label && (
-        <span className="text-xs text-gray-400 font-mono text-center leading-tight max-w-[64px] truncate" title={label}>
+        <span className="text-xs text-[#8b949e] font-mono text-center leading-tight max-w-[64px] truncate" title={label}>
           {label}
         </span>
       )}
@@ -175,7 +175,7 @@ export default function Fader({
               left: '0',
               right: '0',
               height: '1px',
-              backgroundColor: 'rgba(255,255,255,0.2)',
+              backgroundColor: '#30363d',
               zIndex: 1,
             }}
           />
@@ -239,56 +239,57 @@ export default function Fader({
       {/* Inline styles for the range input track and thumb */}
       <style>{`
         .fader-range::-webkit-slider-runnable-track {
-          height: 6px;
-          border-radius: 3px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.1);
+          height: 4px;
+          border-radius: 2px;
+          background: #21262d;
+          border: 1px solid #30363d;
         }
         .fader-range::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 4px;
-          background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
-          border: 1px solid rgba(255,255,255,0.2);
+          width: 18px;
+          height: 14px;
+          border-radius: 3px;
+          background: linear-gradient(180deg, #8b949e 0%, #6e7681 100%);
+          border: 1px solid #484f58;
           cursor: pointer;
-          margin-top: -8px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+          margin-top: -6px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.5);
           transition: background 0.1s, box-shadow 0.1s;
         }
         .fader-range::-webkit-slider-thumb:hover {
-          background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
-          border-color: rgba(249,115,22,0.5);
-          box-shadow: 0 0 8px rgba(249,115,22,0.4);
+          background: linear-gradient(180deg, #9eaab6 0%, #8b949e 100%);
+          border-color: #58a6ff;
+          box-shadow: 0 0 6px rgba(88,166,255,0.3);
         }
         .fader-range::-webkit-slider-thumb:active {
-          background: linear-gradient(180deg, #ea6b0c 0%, #c2570d 100%);
+          background: linear-gradient(180deg, #6e7681 0%, #484f58 100%);
         }
         .fader-range::-moz-range-track {
-          height: 6px;
-          border-radius: 3px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.1);
+          height: 4px;
+          border-radius: 2px;
+          background: #21262d;
+          border: 1px solid #30363d;
         }
         .fader-range::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 4px;
-          background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
-          border: 1px solid rgba(255,255,255,0.2);
+          width: 18px;
+          height: 14px;
+          border-radius: 3px;
+          background: linear-gradient(180deg, #8b949e 0%, #6e7681 100%);
+          border: 1px solid #484f58;
           cursor: pointer;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
         .fader-range::-moz-range-thumb:hover {
-          background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
-          border-color: rgba(249,115,22,0.5);
+          background: linear-gradient(180deg, #9eaab6 0%, #8b949e 100%);
+          border-color: #58a6ff;
+          box-shadow: 0 0 6px rgba(88,166,255,0.3);
         }
         .fader-range:focus::-webkit-slider-thumb {
-          box-shadow: 0 0 0 2px #f97316;
+          box-shadow: 0 0 0 2px #58a6ff;
         }
         .fader-range:focus::-moz-range-thumb {
-          box-shadow: 0 0 0 2px #f97316;
+          box-shadow: 0 0 0 2px #58a6ff;
         }
         .fader-range:focus {
           outline: none;

@@ -67,17 +67,17 @@ export default function ConnectionBar({
 
   return (
     <div style={{
-      padding: '8px 12px',
+      padding: '8px 16px',
       display: 'flex',
       flexWrap: 'wrap',
       gap: 8,
       alignItems: 'center',
-      borderTop: '1px solid rgba(255,255,255,0.05)',
+      borderTop: '1px solid #21262d',
     }}>
 
       {/* Port selector */}
       <div style={{ display: 'flex', gap: 6, flex: '1 1 240px', alignItems: 'center' }}>
-        <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.3)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 500, color: '#8b949e', flexShrink: 0, whiteSpace: 'nowrap' }}>
           Port
         </span>
         <select
@@ -125,27 +125,26 @@ export default function ConnectionBar({
           borderRadius: 8,
           fontSize: 13,
           fontWeight: 600,
-          fontFamily: 'Inter, system-ui, sans-serif',
           cursor: 'pointer',
           transition: 'all 0.15s',
           minHeight: 34,
           border: 'none',
           ...(connected
             ? {
-                background: 'rgba(239,68,68,0.15)',
-                border: '1px solid rgba(239,68,68,0.3)',
-                color: '#f87171',
+                background: 'rgba(218,54,51,0.1)',
+                border: '1px solid rgba(218,54,51,0.3)',
+                color: '#f85149',
               }
             : selectedPort === 'DEMO'
             ? {
-                background: 'linear-gradient(180deg, #fb923c 0%, #ea6b0c 100%)',
+                background: '#1f6feb',
                 color: 'white',
-                boxShadow: '0 0 12px rgba(249,115,22,0.35), 0 1px 2px rgba(0,0,0,0.4)',
+                boxShadow: '0 0 12px rgba(31,111,235,0.3)',
               }
             : {
-                background: 'linear-gradient(180deg, #fb923c 0%, #ea6b0c 100%)',
+                background: '#238636',
                 color: 'white',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
               }
           ),
         }}

@@ -224,26 +224,26 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#09090f', color: '#e8e8f0' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0f1117', color: '#e1e4e8' }}>
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-50" style={{
-        background: 'rgba(9,9,15,0.85)',
+        background: 'rgba(15,17,23,0.92)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderBottom: '1px solid #30363d',
       }}>
         {/* Top bar: logo + title + status */}
         <div className="flex items-center gap-3 px-4 py-3">
           {/* Logo */}
           <div className="flex items-center gap-2.5 flex-shrink-0">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="32" height="32" rx="8" fill="#f97316" fillOpacity="0.15"/>
-              <path d="M7 22 L11 10 L16 18 L21 10 L25 22" stroke="#f97316" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect width="32" height="32" rx="8" fill="#58a6ff" fillOpacity="0.15"/>
+              <path d="M7 22 L11 10 L16 18 L21 10 L25 22" stroke="#58a6ff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: '#e8e8f0' }}>Ashly Protea</div>
-              <div style={{ fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>4.8SP CONTROLLER</div>
+              <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: '#e1e4e8' }}>Ashly Protea</div>
+              <div style={{ fontSize: 10, fontWeight: 500, color: '#8b949e', letterSpacing: '0.06em' }}>4.8SP CONTROLLER</div>
             </div>
           </div>
 
@@ -254,37 +254,37 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
           {isDemo ? (
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.25)',
+              background: 'rgba(88,166,255,0.1)', border: '1px solid rgba(88,166,255,0.25)',
               borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: '#fb923c', letterSpacing: '0.05em',
+              fontSize: 11, fontWeight: 600, color: '#58a6ff', letterSpacing: '0.05em',
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', display: 'inline-block', boxShadow: '0 0 6px #f97316' }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#58a6ff', display: 'inline-block', boxShadow: '0 0 6px #58a6ff' }} />
               DEMO MODE
             </div>
           ) : connected ? (
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.25)',
+              background: 'rgba(63,185,80,0.08)', border: '1px solid rgba(63,185,80,0.25)',
               borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: '#4ade80', letterSpacing: '0.05em',
+              fontSize: 11, fontWeight: 600, color: '#3fb950', letterSpacing: '0.05em',
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 6px #22c55e' }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3fb950', display: 'inline-block', boxShadow: '0 0 6px #3fb950' }} />
               {deviceName || port}
             </div>
           ) : (
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)',
+              background: 'rgba(139,148,158,0.06)', border: '1px solid #30363d',
               borderRadius: 99, padding: '4px 10px',
-              fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em',
+              fontSize: 11, fontWeight: 600, color: '#484f58', letterSpacing: '0.05em',
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'inline-block' }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#484f58', display: 'inline-block' }} />
               DISCONNECTED
             </div>
           )}
 
           {/* WS indicator (desktop only) */}
-          <div className="hidden sm:block" style={{ fontSize: 10, color: readyState === 'open' ? '#22c55e' : 'rgba(255,255,255,0.2)', fontFamily: 'monospace' }}>
+          <div className="hidden sm:block" style={{ fontSize: 10, color: readyState === 'open' ? '#3fb950' : '#484f58', fontFamily: 'monospace' }}>
             WS:{readyState === 'open' ? 'OK' : 'off'}
           </div>
         </div>
@@ -302,7 +302,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
         />
 
         {/* Tab navigation */}
-        <nav style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '6px 12px', overflowX: 'auto', display: 'flex', gap: 4 }}>
+        <nav style={{ borderTop: '1px solid #21262d', padding: '6px 12px', overflowX: 'auto', display: 'flex', gap: 4 }}>
           {TABS.map(tab => (
             <button
               key={tab}
@@ -317,7 +317,7 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
       </header>
 
       {/* ── Main content ── */}
-      <main style={{ flex: 1, padding: '16px', maxWidth: 1800, margin: '0 auto', width: '100%' }}>
+      <main style={{ flex: 1, padding: '16px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Meters */}
@@ -339,10 +339,10 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
           <section className={activeTab === 'Inputs' ? '' : 'hidden md:block'}>
             <div className="panel">
               <div className="panel-header">Input Channels</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: 'rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
                 <Suspense fallback={<ChannelSkeleton count={4} />}>
                   {INPUT_LABELS.map((label, i) => (
-                    <div key={i} style={{ background: '#0f0f1a' }}>
+                    <div key={i} style={{ background: '#161b22' }}>
                       <InputChannel
                         index={i}
                         label={label}
@@ -381,10 +381,10 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
           <section className={activeTab === 'Outputs' ? '' : 'hidden md:block'}>
             <div className="panel">
               <div className="panel-header">Output Channels</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: 'rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: '#21262d' }}>
                 <Suspense fallback={<ChannelSkeleton count={8} />}>
                   {OUTPUT_LABELS.map((label, i) => (
-                    <div key={i} style={{ background: '#0f0f1a' }}>
+                    <div key={i} style={{ background: '#161b22' }}>
                       <OutputChannel
                         index={i}
                         label={label}
@@ -431,15 +431,15 @@ function AppShell({ state, send, ports, connected, port, deviceName, readyState,
 
       {/* ── Footer ── */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid #21262d',
         padding: '10px 16px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         flexWrap: 'wrap', gap: 8,
-        fontSize: 11, color: 'rgba(255,255,255,0.2)',
+        fontSize: 11, color: '#484f58',
       }}>
-        <span style={{ fontFamily: 'monospace' }}>Ashly Protea 4.8SP — 9600 baud RS-232</span>
+        <span>Ashly Protea 4.8SP — 9600 baud RS-232</span>
         {isDemo && (
-          <span style={{ color: 'rgba(249,115,22,0.5)' }}>Simulated hardware — no serial connection</span>
+          <span style={{ color: 'rgba(88,166,255,0.5)' }}>Simulated hardware — no serial connection</span>
         )}
       </footer>
     </div>
@@ -450,7 +450,7 @@ function ChannelSkeleton({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} style={{ height: 260, background: 'rgba(255,255,255,0.03)', animation: 'pulse 2s infinite' }} />
+        <div key={i} style={{ height: 260, background: '#161b22', animation: 'pulse 2s infinite' }} />
       ))}
     </>
   );

@@ -115,7 +115,7 @@ function FilterSection({ id, title, filter, onChange }: FilterSectionProps) {
   return (
     <div className="panel p-3 flex flex-col gap-2 min-w-0">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">{title}</span>
+        <span className="text-xs font-semibold text-[#e1e4e8] uppercase tracking-wider">{title}</span>
         <button
           className={`text-xs px-2 py-1 rounded border min-h-[32px] min-w-[44px] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 ${
             isOff
@@ -133,7 +133,7 @@ function FilterSection({ id, title, filter, onChange }: FilterSectionProps) {
       {/* Frequency */}
       <div className="flex flex-col gap-0.5">
         <label
-          className="text-[10px] text-gray-500"
+          className="text-[10px] text-[#8b949e]"
           htmlFor={`${id}-freq`}
         >
           Freq (Hz)
@@ -161,7 +161,7 @@ function FilterSection({ id, title, filter, onChange }: FilterSectionProps) {
       {/* Filter type */}
       <div className="flex flex-col gap-0.5">
         <label
-          className="text-[10px] text-gray-500"
+          className="text-[10px] text-[#8b949e]"
           htmlFor={`${id}-type`}
         >
           Type

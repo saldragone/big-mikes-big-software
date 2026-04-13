@@ -22,17 +22,17 @@ const DECAY_RATE_DB_PER_SEC = 20;   // meter bar falloff
 const PEAK_HOLD_MS = 2000;           // how long peak line is held
 const PEAK_DECAY_DB_PER_SEC = 10;   // peak line falloff after hold expires
 
-const COLOR_GREEN  = '#22c55e';
-const COLOR_YELLOW = '#eab308';
-const COLOR_RED    = '#ef4444';
-const COLOR_CLIP   = '#ff0000';
-const COLOR_GR     = '#3b82f6';      // gain reduction overlay
-const COLOR_BG     = '#09090f';
-const COLOR_TRACK  = '#1a1a28';
-const COLOR_LABEL  = '#9ca3af';      // gray-400
-const COLOR_GROUP  = '#6b7280';      // gray-500
-const COLOR_PEAK   = '#ffffff';
-const COLOR_CLIP_INACTIVE = '#3a1111';
+const COLOR_GREEN  = '#3fb950';
+const COLOR_YELLOW = '#d29922';
+const COLOR_RED    = '#f85149';
+const COLOR_CLIP   = '#ff4444';
+const COLOR_GR     = '#58a6ff';      // gain reduction - blue accent
+const COLOR_BG     = '#0f1117';
+const COLOR_TRACK  = '#161b22';
+const COLOR_LABEL  = '#8b949e';
+const COLOR_GROUP  = '#8b949e';
+const COLOR_PEAK   = '#e1e4e8';
+const COLOR_CLIP_INACTIVE = '#21262d';
 
 const CLIP_LED_H = 6;   // px height of clip LED at top
 
@@ -322,12 +322,12 @@ export default function MeterBridge({
   }, []);
 
   return (
-    <div className="w-full rounded overflow-hidden" style={{ background: '#09090f' }}>
+    <div className="w-full rounded overflow-hidden" style={{ background: '#0f1117' }}>
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
         className="w-full"
-        style={{ height: '140px', display: 'block', cursor: 'default' }}
+        style={{ height: '180px', display: 'block', cursor: 'default' }}
         title="Click top area to clear clip indicators"
       />
     </div>

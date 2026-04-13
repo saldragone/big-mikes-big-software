@@ -31,7 +31,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
             <tr>
               {/* Top-left corner cell */}
               <th
-                className="text-[10px] text-gray-600 font-normal pb-2 pr-3 text-right whitespace-nowrap"
+                className="text-[10px] text-[#484f58] font-normal pb-2 pr-3 text-right whitespace-nowrap"
                 aria-hidden="true"
               >
                 <span className="sr-only">Output / Input</span>
@@ -45,7 +45,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
                   scope="col"
                   className="text-center pb-2 px-1"
                 >
-                  <span className="text-xs font-semibold text-gray-300 uppercase tracking-widest">
+                  <span className="text-xs font-semibold text-[#e1e4e8] uppercase tracking-widest">
                     {inputLabel}
                   </span>
                 </th>
@@ -64,7 +64,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
                   {/* Output row label */}
                   <th
                     scope="row"
-                    className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-right pr-3 py-1 whitespace-nowrap"
+                    className="text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider text-right pr-3 py-1 whitespace-nowrap"
                   >
                     Out {outputLabel}
                   </th>
@@ -87,7 +87,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
                             inline-flex items-center justify-center
                             p-[14px] sm:p-[10px] md:p-[6px]
                             rounded
-                            focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/60
+                            focus:outline-none focus-visible:ring-1 focus-visible:ring-[#58a6ff]/60
                             transition-colors duration-100
                             group
                           `}
@@ -99,8 +99,8 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
                             className={`
                               block w-4 h-4 rounded-sm transition-colors duration-100
                               ${isEnabled
-                                ? 'bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.5)]'
-                                : 'bg-white/[0.07] group-hover:bg-white/[0.12] border border-white/10'
+                                ? 'bg-[#3fb950] shadow-[0_0_6px_rgba(63,185,80,0.5)]'
+                                : 'bg-[#21262d] group-hover:bg-[#30363d] border border-[#30363d]'
                               }
                             `}
                             aria-hidden="true"
@@ -117,13 +117,13 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="px-3 pb-3 flex items-center gap-4 text-[10px] text-gray-500">
+      <div className="px-3 pb-3 flex items-center gap-4 text-[10px] text-[#8b949e]">
         <div className="flex items-center gap-1.5">
-          <span className="block w-3 h-3 rounded-sm bg-orange-500" aria-hidden="true" />
+          <span className="block w-3 h-3 rounded-sm bg-[#3fb950]" aria-hidden="true" />
           Connected
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="block w-3 h-3 rounded-sm bg-white/[0.07] border border-white/10" aria-hidden="true" />
+          <span className="block w-3 h-3 rounded-sm bg-[#21262d] border border-[#30363d]" aria-hidden="true" />
           Disconnected
         </div>
       </div>

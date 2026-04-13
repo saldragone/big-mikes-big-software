@@ -133,13 +133,13 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
   return (
     <div className="panel flex-shrink-0 w-[160px] sm:w-auto p-2 flex flex-col gap-1.5">
-      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+      <div className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">
         Band {bandIndex + 1}
       </div>
 
       {/* Filter type */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Type</label>
+        <label className="text-[10px] text-[#8b949e]">Type</label>
         <select
           className="select text-xs min-h-[32px]"
           value={filter.filterType}
@@ -154,7 +154,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Frequency */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Freq (Hz)</label>
+        <label className="text-[10px] text-[#8b949e]">Freq (Hz)</label>
         <input
           type="number"
           className="input text-xs min-h-[32px]"
@@ -175,7 +175,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Gain */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Gain (dB)</label>
+        <label className="text-[10px] text-[#8b949e]">Gain (dB)</label>
         <input
           type="number"
           className="input text-xs min-h-[32px]"
@@ -196,7 +196,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Q */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Q</label>
+        <label className="text-[10px] text-[#8b949e]">Q</label>
         <select
           className="select text-xs min-h-[32px]"
           value={closestQ}
@@ -216,7 +216,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">
+    <div className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-widest">
       {children}
     </div>
   );
@@ -328,7 +328,7 @@ export default function OutputChannel({
             onKeyDown={handleDelayKeyDown}
             aria-label={`Output ${label} delay`}
           />
-          <span className="text-xs text-gray-500 font-mono">ms</span>
+          <span className="text-xs text-[#8b949e] font-mono">ms</span>
         </div>
       </div>
 
@@ -349,9 +349,9 @@ export default function OutputChannel({
         <div className="flex items-center justify-between">
           <SectionLabel>Parametric EQ</SectionLabel>
           <button
-            className={`text-xs px-2 py-1 min-h-[44px] min-w-[60px] rounded border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50 ${
+            className={`text-xs px-2 py-1 min-h-[44px] min-w-[60px] rounded border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#58a6ff]/50 ${
               eqEnabled
-                ? 'bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600/30'
+                ? 'bg-[#1f6feb]/15 border-[#58a6ff]/40 text-[#58a6ff] hover:bg-[#1f6feb]/25'
                 : 'btn-ghost'
             }`}
             onClick={onEQEnableToggle}
@@ -407,25 +407,25 @@ export default function OutputChannel({
     <div className="panel overflow-hidden">
       {/* Header */}
       <button
-        className="panel-header w-full flex items-center justify-between cursor-pointer sm:cursor-default focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50"
+        className="panel-header w-full flex items-center justify-between cursor-pointer sm:cursor-default focus:outline-none focus-visible:ring-1 focus-visible:ring-[#58a6ff]/50"
         onClick={() => setExpanded((prev) => !prev)}
         aria-expanded={expanded}
         aria-controls={`output-channel-${index}-content`}
       >
-        <span className="text-gray-200 font-semibold">Output {label}</span>
+        <span className="text-[#e1e4e8] font-semibold">Output {label}</span>
 
         <div className="flex items-center gap-2">
           {/* Gain badge */}
-          <span className="text-[11px] font-mono text-gray-400">
+          <span className="text-[11px] font-mono text-[#8b949e]">
             {gain_dB >= 0 ? '+' : ''}{gain_dB.toFixed(1)} dB
           </span>
 
           {/* Polarity button — stop propagation so it doesn't toggle collapse */}
           <span onClick={(e) => e.stopPropagation()}>
             <button
-              className={`text-xs px-2 py-0.5 min-h-[32px] rounded border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50 ${
+              className={`text-xs px-2 py-0.5 min-h-[32px] rounded border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#58a6ff]/50 ${
                 polarity
-                  ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400'
+                  ? 'bg-[#1f6feb]/20 border-[#58a6ff]/50 text-[#58a6ff]'
                   : 'btn-ghost'
               }`}
               onClick={onPolarityToggle}
@@ -452,7 +452,7 @@ export default function OutputChannel({
 
           {/* Chevron (mobile only) */}
           <svg
-            className={`w-4 h-4 text-gray-500 transition-transform duration-200 sm:hidden ${expanded ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-[#484f58] transition-transform duration-200 sm:hidden ${expanded ? 'rotate-180' : ''}`}
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"

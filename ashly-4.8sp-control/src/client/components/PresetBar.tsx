@@ -30,7 +30,7 @@ export default function PresetBar({ presetNames, connected, onRecall, onSave }: 
 
         {/* Preset selector */}
         <div className="flex items-center gap-1.5 flex-1 min-w-[180px]">
-          <span className="text-xs text-gray-500 shrink-0">Preset</span>
+          <span className="text-xs text-[#8b949e] shrink-0">Preset</span>
           <select
             className="select flex-1"
             value={selectedIndex}
@@ -74,8 +74,8 @@ export default function PresetBar({ presetNames, connected, onRecall, onSave }: 
               disabled={!connected}
               title="Click to rename preset"
             >
-              <span className="text-gray-400 mr-1">Name:</span>
-              <span className="text-gray-200">
+              <span className="text-[#8b949e] mr-1">Name:</span>
+              <span className="text-[#e1e4e8]">
                 {presetNames[selectedIndex] || `Preset ${selectedIndex + 1}`}
               </span>
             </button>
@@ -92,9 +92,21 @@ export default function PresetBar({ presetNames, connected, onRecall, onSave }: 
             Recall
           </button>
           <button
-            className="btn-primary text-sm"
+            className="text-sm"
             disabled={!connected}
             onClick={() => onSave(selectedIndex, presetNames[selectedIndex] || `Preset ${selectedIndex + 1}`)}
+            style={{
+              background: '#238636',
+              color: 'white',
+              border: 'none',
+              borderRadius: 6,
+              padding: '6px 14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#2ea043')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#238636')}
           >
             Save
           </button>

@@ -100,13 +100,13 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
   return (
     <div className="panel flex-shrink-0 w-[160px] sm:w-auto p-2 flex flex-col gap-1.5">
-      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+      <div className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">
         Band {bandIndex + 1}
       </div>
 
       {/* Filter type */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Type</label>
+        <label className="text-[10px] text-[#8b949e]">Type</label>
         <select
           className="select text-xs min-h-[32px]"
           value={filter.filterType}
@@ -121,7 +121,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Frequency */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Freq (Hz)</label>
+        <label className="text-[10px] text-[#8b949e]">Freq (Hz)</label>
         <input
           type="number"
           className="input text-xs min-h-[32px]"
@@ -139,7 +139,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Gain */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Gain (dB)</label>
+        <label className="text-[10px] text-[#8b949e]">Gain (dB)</label>
         <input
           type="number"
           className="input text-xs min-h-[32px]"
@@ -157,7 +157,7 @@ function EQBand({ filter, bandIndex, onChange }: EQBandProps) {
 
       {/* Q */}
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] text-gray-500">Q</label>
+        <label className="text-[10px] text-[#8b949e]">Q</label>
         <select
           className="select text-xs min-h-[32px]"
           value={closestQ}
@@ -260,7 +260,7 @@ export default function InputChannel({
             onKeyDown={handleDelayKeyDown}
             aria-label={`Input ${label} delay`}
           />
-          <span className="text-xs text-gray-500 font-mono">ms</span>
+          <span className="text-xs text-[#8b949e] font-mono">ms</span>
         </div>
       </div>
 
@@ -312,11 +312,11 @@ export default function InputChannel({
         aria-expanded={expanded}
         aria-controls={`input-channel-${index}-content`}
       >
-        <span className="text-gray-200 font-semibold">Input {label}</span>
+        <span className="text-[#e1e4e8] font-semibold">Input {label}</span>
 
         <div className="flex items-center gap-2">
           {/* Gain badge */}
-          <span className="text-[11px] font-mono text-gray-400">
+          <span className="text-[11px] font-mono text-[#8b949e]">
             {gain_dB >= 0 ? '+' : ''}{gain_dB.toFixed(1)} dB
           </span>
 
@@ -335,7 +335,7 @@ export default function InputChannel({
 
           {/* Chevron (mobile only) */}
           <svg
-            className={`w-4 h-4 text-gray-500 transition-transform duration-200 sm:hidden ${expanded ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-[#484f58] transition-transform duration-200 sm:hidden ${expanded ? 'rotate-180' : ''}`}
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"

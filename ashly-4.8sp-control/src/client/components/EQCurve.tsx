@@ -267,14 +267,14 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     const yOf  = (db: number)   => dbToY(db, H, PAD_TOP, PAD_BOTTOM);
 
     // ── Clear ────────────────────────────────────────────────────────────────
-    ctx.fillStyle = '#09090f';
+    ctx.fillStyle = '#0f1117';
     ctx.fillRect(0, 0, W, H);
 
     // ── Grid ─────────────────────────────────────────────────────────────────
 
     // Vertical frequency grid lines (octave intervals)
     const freqGridLines = [20, 40, 80, 160, 320, 640, 1250, 2500, 5000, 10000, 20000];
-    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.strokeStyle = 'rgba(139,148,158,0.12)';
     ctx.lineWidth   = 1;
     for (const f of freqGridLines) {
       const x = xOf(f);
@@ -288,7 +288,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     const dbGridLines = [-12, -6, 0, 6, 12];
     for (const db of dbGridLines) {
       const y = yOf(db);
-      ctx.strokeStyle = db === 0 ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)';
+      ctx.strokeStyle = db === 0 ? 'rgba(139,148,158,0.25)' : 'rgba(139,148,158,0.12)';
       ctx.lineWidth   = db === 0 ? 1.5 : 1;
       ctx.beginPath();
       ctx.moveTo(PAD_LEFT, y);
@@ -298,7 +298,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
 
     // ── Axis labels ───────────────────────────────────────────────────────────
 
-    ctx.fillStyle = '#6b7280';
+    ctx.fillStyle = '#484f58';
     ctx.font      = '9px sans-serif';
     ctx.textAlign = 'center';
 
@@ -316,7 +316,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     ctx.textAlign = 'right';
     const dbLabels = [-12, -6, 0, 6, 12];
     for (const db of dbLabels) {
-      ctx.fillStyle = db === 0 ? '#9ca3af' : '#6b7280';
+      ctx.fillStyle = db === 0 ? '#8b949e' : '#484f58';
       ctx.fillText(db === 0 ? '0' : `${db > 0 ? '+' : ''}${db}`, PAD_LEFT - 3, yOf(db) + 3);
     }
 
@@ -325,7 +325,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     for (const filter of filters) {
       if (Math.abs(filter.gain_dB) < 0.1) continue; // skip near-unity filters
       const curve = computeIndividualResponse(filter);
-      ctx.strokeStyle = 'rgba(249,115,22,0.2)';
+      ctx.strokeStyle = 'rgba(88,166,255,0.2)';
       ctx.lineWidth   = 1;
       ctx.beginPath();
       for (let i = 0; i < NUM_POINTS; i++) {
@@ -343,7 +343,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
 
     const composite = computeCompositeResponse(filters);
 
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = '#58a6ff';
     ctx.lineWidth   = 2;
     ctx.lineJoin    = 'round';
     ctx.beginPath();
@@ -380,15 +380,15 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     }
     ctx.closePath();
     const grad = ctx.createLinearGradient(0, PAD_TOP, 0, PAD_TOP + drawH);
-    grad.addColorStop(0,   'rgba(249,115,22,0.15)');
-    grad.addColorStop(0.5, 'rgba(249,115,22,0.05)');
-    grad.addColorStop(1,   'rgba(249,115,22,0.0)');
+    grad.addColorStop(0,   'rgba(88,166,255,0.12)');
+    grad.addColorStop(0.5, 'rgba(88,166,255,0.04)');
+    grad.addColorStop(1,   'rgba(88,166,255,0.0)');
     ctx.fillStyle = grad;
     ctx.fill();
 
     // ── Clip the draw area ────────────────────────────────────────────────────
     // Draw a border rect to frame the plot area
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = '#30363d';
     ctx.lineWidth   = 1;
     ctx.strokeRect(PAD_LEFT, PAD_TOP, drawW, drawH);
 
@@ -430,7 +430,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
   }, [draw]);
 
   return (
-    <div ref={containerRef} className={`w-full rounded overflow-hidden ${className}`} style={{ background: '#09090f' }}>
+    <div ref={containerRef} className={`w-full rounded overflow-hidden ${className}`} style={{ background: '#0f1117' }}>
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: '100%', height: `${height}px` }}
