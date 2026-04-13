@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useDeviceState, defaultDeviceState } from './hooks/useDeviceState';
+import { usePresets } from './hooks/usePresets';
 import { isDemoMode, useDemoMode } from './demo/useDemoMode';
 import ConnectionBar from './components/ConnectionBar';
 import MeterBridge from './components/MeterBridge';
@@ -52,12 +53,27 @@ export default function App() {
 // ─── Demo App ─────────────────────────────────────────────────────────────────
 function DemoApp() {
   const { state, send, ports } = useDemoMode();
+  const { presetNames, savePreset: dbSave } = usePresets();
+
+  // Overlay DB preset names onto demo state
+  const enrichedState = presetNames
+    ? { ...state, presetNames }
+    : state;
+
+  const sendWithDb = useCallback((obj: object) => {
+    send(obj);
+    const m = obj as Record<string, any>;
+    if (m.type === 'savePreset') {
+      dbSave(m.index, m.name, null);
+    }
+  }, [send, dbSave]);
+
   return (
     <>
       <DemoBanner />
       <AppShell
-        state={state}
-        send={send}
+        state={enrichedState}
+        send={sendWithDb}
         ports={ports}
         readyState="open"
         onRefreshPorts={() => {}}
@@ -70,6 +86,7 @@ function DemoApp() {
 function LiveApp() {
   const { readyState, send: wsSend, lastMessage } = useWebSocket(wsUrl());
   const { state, optimistic } = useDeviceState(lastMessage);
+  const { presetNames, savePreset: dbSave } = usePresets();
   const [ports, setPorts] = useState<{ path: string; manufacturer?: string }[]>([]);
 
   // Intercept portList messages
@@ -81,17 +98,22 @@ function LiveApp() {
     } catch {}
   }, [lastMessage]);
 
+  // Overlay DB names onto device state (DB is source-of-truth for names)
+  const enrichedState = presetNames
+    ? { ...state, presetNames }
+    : state;
+
   const send = useCallback((obj: object) => {
     wsSend(obj);
-    // Apply optimistic updates for immediate UI feedback
     const m = obj as Record<string, any>;
     switch (m.type) {
       case 'setGain':   optimistic.setGain(m.node, m.dB);                   break;
       case 'mute':      optimistic.setMute(m.node, m.muted);                break;
       case 'setDelay':  optimistic.setDelay(m.node, m.ms);                  break;
       case 'setSource': optimistic.setSource(m.output, m.input, m.enabled); break;
+      case 'savePreset': dbSave(m.index, m.name, m.state ?? null);          break;
     }
-  }, [wsSend, optimistic]);
+  }, [wsSend, optimistic, dbSave]);
 
   const onRefreshPorts = useCallback(() => {
     wsSend({ type: 'getPorts' });
@@ -99,7 +121,7 @@ function LiveApp() {
 
   return (
     <AppShell
-      state={state}
+      state={enrichedState}
       send={send}
       ports={ports}
       readyState={readyState}

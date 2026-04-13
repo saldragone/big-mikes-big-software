@@ -3,9 +3,11 @@
   "outputDirectory": "dist/client",
   "framework": null,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
-    "VITE_DEMO_MODE": "true"
+    "VITE_DEMO_MODE": "true",
+    "DATABASE_URL": "postgresql://postgres:rVFBkBAaYtCBNDmkDbReJdQCIsvJbUGK@mainline.proxy.rlwy.net:24420/railway"
   }
 }

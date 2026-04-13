@@ -15,6 +15,7 @@ import {
   dataRequest, presetNamesRequest, deviceNameRequest,
 } from '../lib/ashly-protocol.js';
 import { MSG } from '../lib/constants.js';
+import { initSchema, getAllPresets, upsertPreset } from '../db/schema.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3000);
@@ -45,6 +46,29 @@ app.get('/api/ports', async (_req, res) => {
 
 app.get('/api/status', (_req, res) => {
   res.json({ connected: mgr.isConnected(), port: mgr.getPort() });
+});
+
+// ─── Preset DB API (mirrors the Vercel serverless function) ───────────────────
+app.get('/api/presets', async (_req, res) => {
+  try {
+    const presets = await getAllPresets();
+    res.json(presets);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+app.put('/api/presets', async (req, res) => {
+  try {
+    const { id, name, state } = req.body as { id: number; name: string; state?: any };
+    if (typeof id !== 'number' || id < 0 || id > 29) {
+      res.status(400).json({ error: 'id must be 0–29' }); return;
+    }
+    const row = await upsertPreset(id, String(name ?? '').slice(0, 20), state);
+    res.json(row);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 // SPA fallback
@@ -201,6 +225,8 @@ async function handleClientMessage(msg: Record<string, any>, ws: WebSocket): Pro
     case 'savePreset': {
       const { index, name } = assertFields(msg, ['index', 'name']);
       await mgr.send(savePreset(Number(index), String(name)), true);
+      // Mirror to DB (non-blocking, best-effort)
+      upsertPreset(Number(index), String(name), msg.state ?? null).catch(console.error);
       break;
     }
 
@@ -230,10 +256,22 @@ function assertFields<T extends Record<string, any>>(msg: T, fields: string[]): 
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
-http.listen(PORT, () => {
+http.listen(PORT, async () => {
   console.log(`\n  Ashly 4.8SP Control Server`);
   console.log(`  → http://localhost:${PORT}`);
   console.log(`  → WebSocket: ws://localhost:${PORT}/ws\n`);
+
+  // Init DB schema (non-fatal if DATABASE_URL not set locally)
+  if (process.env.DATABASE_URL) {
+    try {
+      await initSchema();
+      console.log('  → DB: schema ready');
+    } catch (err) {
+      console.warn('  → DB: schema init failed (continuing without DB)', err);
+    }
+  } else {
+    console.log('  → DB: DATABASE_URL not set, running without DB');
+  }
 });
 
 process.on('SIGINT', async () => {
