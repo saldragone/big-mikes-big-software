@@ -151,84 +151,90 @@
      DESKTOP MIXER LAYOUT
      ═══════════════════════════════════════════════════════════════════════════ */
   .desk-layout {
-    display: flex; flex-direction: column; height: calc(100vh - 130px); overflow: hidden;
+    display: flex; flex-direction: column; height: calc(100vh - 130px);
+    overflow: hidden;
   }
 
   .desk-meters {
-    padding: 8px 12px; flex-shrink: 0; border-bottom: 1px solid #21262d;
+    padding: 6px 12px; flex-shrink: 0; border-bottom: 1px solid #21262d;
     background: rgba(13,17,23,0.5);
   }
 
   .mixer-console {
-    flex: 1; display: flex; overflow-x: auto; padding: 0 8px;
+    flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
+    padding: 0;
     background: linear-gradient(180deg, #0d1117 0%, #0a0d12 100%);
+    /* Smooth horizontal scroll */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .mixer-group { display: flex; flex-direction: column; }
+  .mixer-group { display: flex; flex-direction: column; flex-shrink: 0; }
   .mixer-group-label {
-    padding: 6px 12px; font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em; color: #484f58;
-    border-bottom: 1px solid #161b22;
+    padding: 5px 14px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: #6e7681;
+    border-bottom: 1px solid #21262d;
+    background: rgba(22,27,34,0.4);
   }
   .mixer-strips { display: flex; flex: 1; }
   .mixer-divider {
-    width: 1px; background: #21262d; margin: 0 4px; flex-shrink: 0;
+    width: 2px; background: #21262d; margin: 0; flex-shrink: 0;
   }
 
   /* ── Individual mixer strip ── */
   .mixer-strip {
-    width: 72px; min-width: 72px; flex-shrink: 0;
+    width: 110px; min-width: 110px; flex-shrink: 0;
     display: flex; flex-direction: column; align-items: center;
     border-right: 1px solid #161b22;
-    border-top: 2px solid rgba(88,166,255,0.15);
     background: #0d1117;
     transition: background 0.1s;
   }
-  .mixer-strip:hover { background: #0f1318; }
+  .mixer-strip:hover { background: #111620; }
 
   /* EQ thumbnail */
   .strip-eq-thumb {
-    width: 100%; height: 48px; cursor: pointer; padding: 2px;
+    width: 100%; height: 56px; cursor: pointer; padding: 3px 4px;
     border: none; background: transparent;
     border-bottom: 1px solid #161b22;
     transition: background 0.1s;
   }
-  .strip-eq-thumb:hover { background: rgba(88,166,255,0.05); }
+  .strip-eq-thumb:hover { background: rgba(88,166,255,0.06); }
 
   /* Info pills */
   .strip-pills {
-    display: flex; gap: 2px; padding: 3px 2px; width: 100%; justify-content: center;
+    display: flex; gap: 3px; padding: 4px 4px; width: 100%; justify-content: center;
     border-bottom: 1px solid #161b22;
+    flex-shrink: 0;
   }
   .strip-pill {
-    font-size: 8px; font-weight: 600; padding: 1px 4px;
+    font-size: 9px; font-weight: 600; padding: 2px 6px;
     border-radius: 3px; border: 1px solid #21262d; background: transparent;
     color: #484f58; cursor: pointer; transition: all 0.1s;
     text-transform: uppercase; letter-spacing: 0.03em;
   }
   .strip-pill:hover { border-color: #30363d; color: #8b949e; background: rgba(255,255,255,0.03); }
   .strip-pill.active { border-color: rgba(88,166,255,0.3); color: #58a6ff; background: rgba(88,166,255,0.06); }
-  .strip-pill-value { font-family: 'SF Mono', Menlo, monospace; font-size: 8px; }
+  .strip-pill-value { font-family: 'SF Mono', Menlo, monospace; font-size: 9px; }
 
   /* Vertical fader */
   .strip-fader-container {
     position: relative; flex: 1; width: 100%;
     display: flex; align-items: center; justify-content: center;
-    padding: 8px 0; min-height: 160px;
+    padding: 6px 0; min-height: 120px;
   }
   .strip-fader {
     writing-mode: vertical-lr;
     direction: rtl;
     appearance: slider-vertical;
     -webkit-appearance: slider-vertical;
-    width: 28px; height: 100%;
+    width: 32px; height: 100%;
     background: transparent; cursor: pointer;
   }
   .strip-fader::-webkit-slider-runnable-track {
-    width: 3px; background: #21262d; border-radius: 2px;
+    width: 4px; background: #21262d; border-radius: 2px;
   }
   .strip-fader::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 24px; height: 10px;
+    -webkit-appearance: none; width: 28px; height: 12px;
     border-radius: 2px;
     background: linear-gradient(180deg, #8b949e, #6e7681);
     border: 1px solid #484f58; cursor: grab;
@@ -239,25 +245,25 @@
     border-color: #58a6ff;
   }
   .strip-fader::-moz-range-track {
-    width: 3px; background: #21262d; border-radius: 2px;
+    width: 4px; background: #21262d; border-radius: 2px;
   }
   .strip-fader::-moz-range-thumb {
-    width: 24px; height: 10px; border-radius: 2px;
+    width: 28px; height: 12px; border-radius: 2px;
     background: linear-gradient(180deg, #8b949e, #6e7681);
     border: 1px solid #484f58; cursor: grab;
   }
   .strip-fader:focus { outline: none; }
   .strip-fader-zero {
-    position: absolute; left: 8px; right: 8px; height: 1px;
+    position: absolute; left: 12px; right: 12px; height: 1px;
     background: #30363d; pointer-events: none;
   }
 
   /* dB readout */
   .strip-db-readout {
-    width: 56px; text-align: center; font-family: 'SF Mono', Menlo, monospace;
-    font-size: 11px; font-weight: 600; color: #e1e4e8;
-    background: #0d1117; border: 1px solid #21262d; border-radius: 3px;
-    padding: 2px 0; margin: 2px 0;
+    width: 72px; text-align: center; font-family: 'SF Mono', Menlo, monospace;
+    font-size: 12px; font-weight: 600; color: #e1e4e8;
+    background: #0d1117; border: 1px solid #21262d; border-radius: 4px;
+    padding: 3px 0; margin: 3px 0;
   }
   .strip-db-readout:focus {
     outline: none; border-color: #58a6ff;
@@ -266,11 +272,12 @@
 
   /* Buttons row */
   .strip-buttons {
-    display: flex; gap: 2px; padding: 3px 4px; width: 100%;
+    display: flex; gap: 3px; padding: 4px 6px; width: 100%;
     justify-content: center; border-top: 1px solid #161b22;
+    flex-shrink: 0;
   }
   .strip-btn-mute {
-    width: 28px; height: 20px; font-size: 9px; font-weight: 800;
+    width: 32px; height: 22px; font-size: 10px; font-weight: 800;
     border-radius: 3px; border: 1px solid #21262d;
     background: transparent; color: #484f58; cursor: pointer;
     transition: all 0.1s; letter-spacing: 0.02em;
@@ -281,7 +288,7 @@
     color: #f85149; box-shadow: 0 0 6px rgba(248,81,73,0.15);
   }
   .strip-btn-polarity {
-    width: 22px; height: 20px; font-size: 10px; font-weight: 700;
+    width: 26px; height: 22px; font-size: 11px; font-weight: 700;
     border-radius: 3px; border: 1px solid #21262d;
     background: transparent; color: #484f58; cursor: pointer; transition: all 0.1s;
   }
@@ -292,9 +299,10 @@
 
   /* Channel label */
   .strip-label {
-    width: 100%; padding: 3px 0; text-align: center;
-    font-size: 9px; font-weight: 700; color: white;
+    width: 100%; padding: 4px 0; text-align: center;
+    font-size: 10px; font-weight: 700; color: white;
     letter-spacing: 0.04em; text-transform: uppercase;
+    flex-shrink: 0;
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════

@@ -92,7 +92,7 @@ export default function MixerStrip({
       {/* ── EQ thumbnail — click to open EQ modal ── */}
       <button className="strip-eq-thumb" onClick={() => onOpenDetail('eq')}
         title="Edit EQ" aria-label={`Edit EQ for ${channelType} ${label}`}>
-        <EQCurve filters={eqFilters} height={48} className={eqEnabled ? '' : 'opacity-30'} />
+        <EQCurve filters={eqFilters} height={52} className={eqEnabled ? '' : 'opacity-30'} />
       </button>
 
       {/* ── Info pills — click to open respective modal ── */}
