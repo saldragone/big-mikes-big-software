@@ -426,7 +426,7 @@ export default function OutputChannel({
               className={`text-xs px-2 py-0.5 min-h-[32px] rounded border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50 ${
                 polarity
                   ? 'bg-yellow-600/20 border-yellow-500/50 text-yellow-400'
-                  : 'bg-[#2c2c2c] border-[#444] text-gray-500 hover:bg-[#333]'
+                  : 'btn-ghost'
               }`}
               onClick={onPolarityToggle}
               aria-pressed={polarity}

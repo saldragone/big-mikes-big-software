@@ -3,7 +3,12 @@
  *
  * Runs in two modes:
  *  - Normal:  WebSocket → Node.js backend → RS-232 → 4.8SP
- *  - Demo:    useDemoMode() provides simulated state (Vercel preview)
+ *  - Demo:    useDemoMode() provides simulated state (Vercel preview or manual toggle)
+ *
+ * Demo mode can be activated by:
+ *   1. VITE_DEMO_MODE=true env var (Vercel deployment)
+ *   2. ?demo=1 URL param
+ *   3. Selecting "DEMO" from the port dropdown and clicking Connect
  */
 
 import { useCallback, useEffect, useState, lazy, Suspense } from 'react';
@@ -29,67 +34,71 @@ function wsUrl(): string {
   return `${proto}//${host}/ws`;
 }
 
-// ─── Tab navigation for mobile ────────────────────────────────────────────────
+// ─── Tab navigation ───────────────────────────────────────────────────────────
 const TABS = ['Meters', 'Inputs', 'Routing', 'Outputs', 'Presets'] as const;
 type Tab = typeof TABS[number];
 
-// ─── Demo banner ─────────────────────────────────────────────────────────────
-function DemoBanner() {
-  return (
-    <div className="bg-brand/15 border-b border-brand/30 px-4 py-2 text-center text-xs text-brand font-medium">
-      DEMO MODE — Simulated Ashly 4.8SP. All controls are interactive.
-      Connect your own device at{' '}
-      <span className="font-mono text-gray-300">localhost:3000</span> for real hardware control.
-    </div>
-  );
-}
+const TAB_ICONS: Record<Tab, string> = {
+  Meters:  '⬛',
+  Inputs:  '↘',
+  Routing: '⇄',
+  Outputs: '↗',
+  Presets: '☰',
+};
 
-// ─── App (Demo wrapper) ───────────────────────────────────────────────────────
+// ─── App root ────────────────────────────────────────────────────────────────
 export default function App() {
-  const demo = isDemoMode();
-  return demo ? <DemoApp /> : <LiveApp />;
+  const [demoActive, setDemoActive] = useState(isDemoMode());
+
+  if (demoActive) {
+    return <DemoApp onExitDemo={() => setDemoActive(false)} />;
+  }
+  return <LiveApp onEnterDemo={() => setDemoActive(true)} />;
 }
 
 // ─── Demo App ─────────────────────────────────────────────────────────────────
-function DemoApp() {
-  const { state, send, ports } = useDemoMode();
+function DemoApp({ onExitDemo }: { onExitDemo: () => void }) {
+  const { state, send: demoSend } = useDemoMode();
   const { presetNames, savePreset: dbSave } = usePresets();
 
-  // Overlay DB preset names onto demo state
   const enrichedState = presetNames
     ? { ...state, presetNames }
     : state;
 
-  const sendWithDb = useCallback((obj: object) => {
-    send(obj);
+  const send = useCallback((obj: object) => {
     const m = obj as Record<string, any>;
+    if (m.type === 'disconnect') {
+      onExitDemo();
+      return;
+    }
+    demoSend(obj);
     if (m.type === 'savePreset') {
       dbSave(m.index, m.name, null);
     }
-  }, [send, dbSave]);
+  }, [demoSend, dbSave, onExitDemo]);
 
   return (
-    <>
-      <DemoBanner />
-      <AppShell
-        state={enrichedState}
-        send={sendWithDb}
-        ports={ports}
-        readyState="open"
-        onRefreshPorts={() => {}}
-      />
-    </>
+    <AppShell
+      state={enrichedState}
+      send={send}
+      ports={[{ path: 'DEMO', manufacturer: 'Simulated Ashly 4.8SP' }]}
+      connected={true}
+      port="DEMO"
+      deviceName="4.8SP (Demo)"
+      readyState="open"
+      onRefreshPorts={() => {}}
+      isDemo={true}
+    />
   );
 }
 
 // ─── Live App ─────────────────────────────────────────────────────────────────
-function LiveApp() {
+function LiveApp({ onEnterDemo }: { onEnterDemo: () => void }) {
   const { readyState, send: wsSend, lastMessage } = useWebSocket(wsUrl());
   const { state, optimistic } = useDeviceState(lastMessage);
   const { presetNames, savePreset: dbSave } = usePresets();
   const [ports, setPorts] = useState<{ path: string; manufacturer?: string }[]>([]);
 
-  // Intercept portList messages
   useEffect(() => {
     if (!lastMessage) return;
     try {
@@ -98,22 +107,26 @@ function LiveApp() {
     } catch {}
   }, [lastMessage]);
 
-  // Overlay DB names onto device state (DB is source-of-truth for names)
   const enrichedState = presetNames
     ? { ...state, presetNames }
     : state;
 
   const send = useCallback((obj: object) => {
-    wsSend(obj);
     const m = obj as Record<string, any>;
-    switch (m.type) {
-      case 'setGain':   optimistic.setGain(m.node, m.dB);                   break;
-      case 'mute':      optimistic.setMute(m.node, m.muted);                break;
-      case 'setDelay':  optimistic.setDelay(m.node, m.ms);                  break;
-      case 'setSource': optimistic.setSource(m.output, m.input, m.enabled); break;
-      case 'savePreset': dbSave(m.index, m.name, m.state ?? null);          break;
+    // Intercept DEMO port selection → switch to demo mode
+    if (m.type === 'connect' && m.port === 'DEMO') {
+      onEnterDemo();
+      return;
     }
-  }, [wsSend, optimistic, dbSave]);
+    wsSend(obj);
+    switch (m.type) {
+      case 'setGain':    optimistic.setGain(m.node, m.dB);                   break;
+      case 'mute':       optimistic.setMute(m.node, m.muted);                break;
+      case 'setDelay':   optimistic.setDelay(m.node, m.ms);                  break;
+      case 'setSource':  optimistic.setSource(m.output, m.input, m.enabled); break;
+      case 'savePreset': dbSave(m.index, m.name, m.state ?? null);           break;
+    }
+  }, [wsSend, optimistic, dbSave, onEnterDemo]);
 
   const onRefreshPorts = useCallback(() => {
     wsSend({ type: 'getPorts' });
@@ -124,8 +137,12 @@ function LiveApp() {
       state={enrichedState}
       send={send}
       ports={ports}
+      connected={state.connected}
+      port={state.port}
+      deviceName={state.deviceName}
       readyState={readyState}
       onRefreshPorts={onRefreshPorts}
+      isDemo={false}
     />
   );
 }
@@ -135,31 +152,24 @@ interface ShellProps {
   state: ReturnType<typeof useDeviceState>['state'] | typeof defaultDeviceState;
   send: (obj: object) => void;
   ports: { path: string; manufacturer?: string }[];
+  connected: boolean;
+  port: string;
+  deviceName: string;
   readyState: string;
   onRefreshPorts: () => void;
+  isDemo: boolean;
 }
 
-function AppShell({ state, send, ports, readyState, onRefreshPorts }: ShellProps) {
+function AppShell({ state, send, ports, connected, port, deviceName, readyState, onRefreshPorts, isDemo }: ShellProps) {
   const [activeTab, setActiveTab] = useState<Tab>('Meters');
 
-  // Keyboard shortcut: M = mute selected channel (future: track selected)
-  useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if ((e.target as HTMLElement).tagName === 'INPUT') return;
-      // Global shortcuts can be added here
-    }
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
   // ── Helpers ──────────────────────────────────────────────────────────────
-
-  function inputGain(i: number) { return state.gains.find(g => g.node === i)?.gain_dB ?? 0; }
-  function outputGain(i: number) { return state.gains.find(g => g.node === i + 4)?.gain_dB ?? 0; }
-  function inputMuted(i: number) { return state.status.mute[i] ?? false; }
-  function outputMuted(i: number) { return state.status.mute[i + 4] ?? false; }
-  function inputDelay(i: number) { return state.delays.find(d => d.node === i)?.ms ?? 0; }
-  function outputDelay(i: number) { return state.delays.find(d => d.node === i + 4)?.ms ?? 0; }
+  function inputGain(i: number)    { return state.gains.find(g => g.node === i)?.gain_dB ?? 0; }
+  function outputGain(i: number)   { return state.gains.find(g => g.node === i + 4)?.gain_dB ?? 0; }
+  function inputMuted(i: number)   { return state.status.mute[i] ?? false; }
+  function outputMuted(i: number)  { return state.status.mute[i + 4] ?? false; }
+  function inputDelay(i: number)   { return state.delays.find(d => d.node === i)?.ms ?? 0; }
+  function outputDelay(i: number)  { return state.delays.find(d => d.node === i + 4)?.ms ?? 0; }
   function inputEQ(i: number) {
     const base = inputEqFilterBase(i);
     return state.eqFilters.filter(f => f.filterNum >= base && f.filterNum < base + 6);
@@ -168,38 +178,28 @@ function AppShell({ state, send, ports, readyState, onRefreshPorts }: ShellProps
     const base = outputEqFilterBase(i);
     return state.eqFilters.filter(f => f.filterNum >= base && f.filterNum < base + 4);
   }
-  function outputHPF(i: number) { return state.crossovers.find(c => c.filterNum === i * 2); }
-  function outputLPF(i: number) { return state.crossovers.find(c => c.filterNum === i * 2 + 1); }
+  function outputHPF(i: number)     { return state.crossovers.find(c => c.filterNum === i * 2); }
+  function outputLPF(i: number)     { return state.crossovers.find(c => c.filterNum === i * 2 + 1); }
   function outputLimiter(i: number) { return state.limiters.find(l => l.node === i + 4); }
 
   // ── Event senders ────────────────────────────────────────────────────────
-
-  const handleConnect = (port: string) => send({ type: 'connect', port });
+  const handleConnect    = (p: string) => send({ type: 'connect', port: p });
   const handleDisconnect = () => send({ type: 'disconnect' });
 
-  const handleInputGain  = (i: number, dB: number) => send({ type: 'setGain',  node: i,     dB });
-  const handleOutputGain = (i: number, dB: number) => send({ type: 'setGain',  node: i + 4, dB });
-  const handleInputMute  = (i: number, m: boolean) => send({ type: 'mute',     node: i,     muted: m });
-  const handleOutputMute = (i: number, m: boolean) => send({ type: 'mute',     node: i + 4, muted: m });
-  const handleInputDelay = (i: number, ms: number) => send({ type: 'setDelay', node: i,     ms });
-  const handleOutputDelay= (i: number, ms: number) => send({ type: 'setDelay', node: i + 4, ms });
+  const handleInputGain   = (i: number, dB: number)  => send({ type: 'setGain',  node: i,     dB });
+  const handleOutputGain  = (i: number, dB: number)  => send({ type: 'setGain',  node: i + 4, dB });
+  const handleInputMute   = (i: number, m: boolean)  => send({ type: 'mute',     node: i,     muted: m });
+  const handleOutputMute  = (i: number, m: boolean)  => send({ type: 'mute',     node: i + 4, muted: m });
+  const handleInputDelay  = (i: number, ms: number)  => send({ type: 'setDelay', node: i,     ms });
+  const handleOutputDelay = (i: number, ms: number)  => send({ type: 'setDelay', node: i + 4, ms });
 
-  const handleOutputPolarity = (i: number) => {
-    const pol = [...state.status.polarity];
-    pol[i] = !pol[i];
-    // polarity is part of status message — send full status (simplified: toggle via source select)
-    // In full impl we'd reconstruct the status message; for now, optimistic only
-  };
-
-  const handleInputEQChange = (_i: number, filter: any) =>
+  const handleInputEQChange  = (_i: number, filter: any) =>
     send({ type: 'setEQ', filter: filter.filterNum, freq: filter.freq, q: filter.q, gain: filter.gain_dB, filterType: filter.filterType });
-
   const handleOutputEQChange = (_i: number, filter: any) =>
     send({ type: 'setEQ', filter: filter.filterNum, freq: filter.freq, q: filter.q, gain: filter.gain_dB, filterType: filter.filterType });
 
   const handleHPFChange = (i: number, freq: number | 'off', filterType: number) =>
-    send({ type: 'setCrossover', filter: i * 2, freq, filterType });
-
+    send({ type: 'setCrossover', filter: i * 2,     freq, filterType });
   const handleLPFChange = (i: number, freq: number | 'off', filterType: number) =>
     send({ type: 'setCrossover', filter: i * 2 + 1, freq, filterType });
 
@@ -207,8 +207,8 @@ function AppShell({ state, send, ports, readyState, onRefreshPorts }: ShellProps
     const lim = outputLimiter(i);
     if (!lim) return;
     send({
-      type: 'setLimiter',
-      node: i + 4,
+      type:      'setLimiter',
+      node:      i + 4,
       threshold: field === 'threshold' ? v : lim.threshold_dBu,
       ratio:     field === 'ratio'     ? v : lim.ratio,
       attack:    field === 'attack'    ? v : lim.attack,
@@ -223,158 +223,224 @@ function AppShell({ state, send, ports, readyState, onRefreshPorts }: ShellProps
   const handleSavePreset   = (index: number, name: string) => send({ type: 'savePreset', index, name });
 
   // ── Render ────────────────────────────────────────────────────────────────
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#1e1e1e] text-gray-100 font-mono">
+    <div className="min-h-screen flex flex-col" style={{ background: '#09090f', color: '#e8e8f0' }}>
 
-      {/* Connection Bar */}
-      <header className="sticky top-0 z-50 bg-[#1e1e1e] border-b border-[#333] shadow-lg">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-50" style={{
+        background: 'rgba(9,9,15,0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+      }}>
+        {/* Top bar: logo + title + status */}
+        <div className="flex items-center gap-3 px-4 py-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="#f97316" fillOpacity="0.15"/>
+              <path d="M7 22 L11 10 L16 18 L21 10 L25 22" stroke="#f97316" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: '#e8e8f0' }}>Ashly Protea</div>
+              <div style={{ fontSize: 10, fontWeight: 500, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>4.8SP CONTROLLER</div>
+            </div>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Status chip */}
+          {isDemo ? (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.25)',
+              borderRadius: 99, padding: '4px 10px',
+              fontSize: 11, fontWeight: 600, color: '#fb923c', letterSpacing: '0.05em',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', display: 'inline-block', boxShadow: '0 0 6px #f97316' }} />
+              DEMO MODE
+            </div>
+          ) : connected ? (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(34,197,94,0.10)', border: '1px solid rgba(34,197,94,0.25)',
+              borderRadius: 99, padding: '4px 10px',
+              fontSize: 11, fontWeight: 600, color: '#4ade80', letterSpacing: '0.05em',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block', boxShadow: '0 0 6px #22c55e' }} />
+              {deviceName || port}
+            </div>
+          ) : (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)',
+              borderRadius: 99, padding: '4px 10px',
+              fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.05em',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'inline-block' }} />
+              DISCONNECTED
+            </div>
+          )}
+
+          {/* WS indicator (desktop only) */}
+          <div className="hidden sm:block" style={{ fontSize: 10, color: readyState === 'open' ? '#22c55e' : 'rgba(255,255,255,0.2)', fontFamily: 'monospace' }}>
+            WS:{readyState === 'open' ? 'OK' : 'off'}
+          </div>
+        </div>
+
+        {/* Connection bar */}
         <ConnectionBar
-          connected={state.connected}
-          port={state.port}
-          deviceName={state.deviceName}
+          connected={connected}
+          port={port}
+          deviceName={deviceName}
           ports={ports}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
           onRefreshPorts={onRefreshPorts}
           send={send}
         />
+
+        {/* Tab navigation */}
+        <nav style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '6px 12px', overflowX: 'auto', display: 'flex', gap: 4 }}>
+          {TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`nav-tab${activeTab === tab ? ' active' : ''}`}
+            >
+              <span className="hidden sm:inline mr-1" style={{ opacity: 0.7 }}>{TAB_ICONS[tab]}</span>
+              {tab}
+            </button>
+          ))}
+        </nav>
       </header>
 
-      {/* Mobile tab bar */}
-      <nav className="flex md:hidden sticky top-[57px] z-40 bg-[#252525] border-b border-[#333] overflow-x-auto">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            className={`flex-1 min-w-[70px] px-3 py-2.5 text-xs font-semibold uppercase tracking-wide
-              transition-colors whitespace-nowrap
-              ${activeTab === tab
-                ? 'text-brand border-b-2 border-brand bg-[#2c2c2c]'
-                : 'text-gray-500 hover:text-gray-300'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
+      {/* ── Main content ── */}
+      <main style={{ flex: 1, padding: '16px', maxWidth: 1800, margin: '0 auto', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Main content */}
-      <main className="flex-1 p-2 md:p-4 space-y-4 max-w-[1800px] mx-auto w-full">
-
-        {/* ── Meters (always visible on desktop, tab on mobile) ── */}
-        <section className={activeTab === 'Meters' ? 'block' : 'hidden md:block'}>
-          <div className="panel">
-            <div className="panel-header">Level Meters</div>
-            <div className="p-2 overflow-x-auto">
-              <MeterBridge
-                levels={state.meters.levels}
-                gainReduction={state.meters.gainReduction}
-                inputLabels={[...INPUT_LABELS]}
-                outputLabels={[...OUTPUT_LABELS]}
-              />
+          {/* Meters */}
+          <section className={activeTab === 'Meters' ? '' : 'hidden md:block'}>
+            <div className="panel">
+              <div className="panel-header">Level Meters</div>
+              <div style={{ padding: 12, overflowX: 'auto' }}>
+                <MeterBridge
+                  levels={state.meters.levels}
+                  gainReduction={state.meters.gainReduction}
+                  inputLabels={[...INPUT_LABELS]}
+                  outputLabels={[...OUTPUT_LABELS]}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ── Inputs ── */}
-        <section className={activeTab === 'Inputs' ? 'block' : 'hidden md:block'}>
-          <div className="panel">
-            <div className="panel-header">Input Channels</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-[#333]">
-              <Suspense fallback={<ChannelSkeleton count={4} />}>
-                {INPUT_LABELS.map((label, i) => (
-                  <div key={i} className="bg-[#252525]">
-                    <InputChannel
-                      index={i}
-                      label={label}
-                      gain_dB={inputGain(i)}
-                      muted={inputMuted(i)}
-                      delay_ms={inputDelay(i)}
-                      eqFilters={inputEQ(i)}
-                      eqEnabled={state.status.eqEnable[i] ?? true}
-                      onGainChange={dB => handleInputGain(i, dB)}
-                      onMute={m => handleInputMute(i, m)}
-                      onDelayChange={ms => handleInputDelay(i, ms)}
-                      onEQChange={f => handleInputEQChange(i, f)}
-                      onEQEnableToggle={() => {}}
-                    />
-                  </div>
-                ))}
-              </Suspense>
+          {/* Inputs */}
+          <section className={activeTab === 'Inputs' ? '' : 'hidden md:block'}>
+            <div className="panel">
+              <div className="panel-header">Input Channels</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: 'rgba(255,255,255,0.05)' }}>
+                <Suspense fallback={<ChannelSkeleton count={4} />}>
+                  {INPUT_LABELS.map((label, i) => (
+                    <div key={i} style={{ background: '#0f0f1a' }}>
+                      <InputChannel
+                        index={i}
+                        label={label}
+                        gain_dB={inputGain(i)}
+                        muted={inputMuted(i)}
+                        delay_ms={inputDelay(i)}
+                        eqFilters={inputEQ(i)}
+                        eqEnabled={state.status.eqEnable[i] ?? true}
+                        onGainChange={dB => handleInputGain(i, dB)}
+                        onMute={m => handleInputMute(i, m)}
+                        onDelayChange={ms => handleInputDelay(i, ms)}
+                        onEQChange={f => handleInputEQChange(i, f)}
+                        onEQEnableToggle={() => {}}
+                      />
+                    </div>
+                  ))}
+                </Suspense>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ── Routing Matrix ── */}
-        <section className={activeTab === 'Routing' ? 'block' : 'hidden md:block'}>
-          <div className="panel">
-            <div className="panel-header">Input → Output Routing</div>
-            <div className="p-2 overflow-x-auto">
-              <RoutingMatrix
-                routing={state.status.routing}
-                onToggle={handleRoutingToggle}
-              />
+          {/* Routing Matrix */}
+          <section className={activeTab === 'Routing' ? '' : 'hidden md:block'}>
+            <div className="panel">
+              <div className="panel-header">Input → Output Routing</div>
+              <div style={{ padding: 12, overflowX: 'auto' }}>
+                <RoutingMatrix
+                  routing={state.status.routing}
+                  onToggle={handleRoutingToggle}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ── Outputs ── */}
-        <section className={activeTab === 'Outputs' ? 'block' : 'hidden md:block'}>
-          <div className="panel">
-            <div className="panel-header">Output Channels</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[#333]">
-              <Suspense fallback={<ChannelSkeleton count={8} />}>
-                {OUTPUT_LABELS.map((label, i) => (
-                  <div key={i} className="bg-[#252525]">
-                    <OutputChannel
-                      index={i}
-                      label={label}
-                      gain_dB={outputGain(i)}
-                      muted={outputMuted(i)}
-                      delay_ms={outputDelay(i)}
-                      polarity={state.status.polarity[i] ?? false}
-                      eqFilters={outputEQ(i)}
-                      eqEnabled={state.status.eqEnable[i + 4] ?? true}
-                      hpf={outputHPF(i)}
-                      lpf={outputLPF(i)}
-                      limiter={outputLimiter(i)}
-                      limiterEnabled={state.status.limiterEnable[i] ?? false}
-                      onGainChange={dB => handleOutputGain(i, dB)}
-                      onMute={m => handleOutputMute(i, m)}
-                      onDelayChange={ms => handleOutputDelay(i, ms)}
-                      onPolarityToggle={() => handleOutputPolarity(i)}
-                      onEQChange={f => handleOutputEQChange(i, f)}
-                      onEQEnableToggle={() => {}}
-                      onHPFChange={(freq, ft) => handleHPFChange(i, freq, ft)}
-                      onLPFChange={(freq, ft) => handleLPFChange(i, freq, ft)}
-                      onLimiterChange={(field, v) => handleLimiterChange(i, field, v)}
-                      onLimiterEnableToggle={() => {}}
-                    />
-                  </div>
-                ))}
-              </Suspense>
+          {/* Outputs */}
+          <section className={activeTab === 'Outputs' ? '' : 'hidden md:block'}>
+            <div className="panel">
+              <div className="panel-header">Output Channels</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, background: 'rgba(255,255,255,0.05)' }}>
+                <Suspense fallback={<ChannelSkeleton count={8} />}>
+                  {OUTPUT_LABELS.map((label, i) => (
+                    <div key={i} style={{ background: '#0f0f1a' }}>
+                      <OutputChannel
+                        index={i}
+                        label={label}
+                        gain_dB={outputGain(i)}
+                        muted={outputMuted(i)}
+                        delay_ms={outputDelay(i)}
+                        polarity={state.status.polarity[i] ?? false}
+                        eqFilters={outputEQ(i)}
+                        eqEnabled={state.status.eqEnable[i + 4] ?? true}
+                        hpf={outputHPF(i)}
+                        lpf={outputLPF(i)}
+                        limiter={outputLimiter(i)}
+                        limiterEnabled={state.status.limiterEnable[i] ?? false}
+                        onGainChange={dB => handleOutputGain(i, dB)}
+                        onMute={m => handleOutputMute(i, m)}
+                        onDelayChange={ms => handleOutputDelay(i, ms)}
+                        onPolarityToggle={() => {}}
+                        onEQChange={f => handleOutputEQChange(i, f)}
+                        onEQEnableToggle={() => {}}
+                        onHPFChange={(freq, ft) => handleHPFChange(i, freq, ft)}
+                        onLPFChange={(freq, ft) => handleLPFChange(i, freq, ft)}
+                        onLimiterChange={(field, v) => handleLimiterChange(i, field, v)}
+                        onLimiterEnableToggle={() => {}}
+                      />
+                    </div>
+                  ))}
+                </Suspense>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ── Presets ── */}
-        <section className={activeTab === 'Presets' ? 'block' : 'hidden md:block'}>
-          <PresetBar
-            presetNames={state.presetNames}
-            connected={state.connected}
-            onRecall={handleRecallPreset}
-            onSave={handleSavePreset}
-          />
-        </section>
+          {/* Presets */}
+          <section className={activeTab === 'Presets' ? '' : 'hidden md:block'}>
+            <PresetBar
+              presetNames={state.presetNames}
+              connected={connected}
+              onRecall={handleRecallPreset}
+              onSave={handleSavePreset}
+            />
+          </section>
 
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-[#333] px-4 py-2 text-[10px] text-gray-600 flex flex-wrap gap-3 justify-between">
-        <span>Ashly Protea 4.8SP Control — 9600 baud RS-232</span>
-        <span className={`font-medium ${readyState === 'open' ? 'text-green-600' : 'text-red-600'}`}>
-          WS: {readyState}
-        </span>
+      {/* ── Footer ── */}
+      <footer style={{
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        padding: '10px 16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: 8,
+        fontSize: 11, color: 'rgba(255,255,255,0.2)',
+      }}>
+        <span style={{ fontFamily: 'monospace' }}>Ashly Protea 4.8SP — 9600 baud RS-232</span>
+        {isDemo && (
+          <span style={{ color: 'rgba(249,115,22,0.5)' }}>Simulated hardware — no serial connection</span>
+        )}
       </footer>
     </div>
   );
@@ -384,7 +450,7 @@ function ChannelSkeleton({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="h-64 bg-[#252525] animate-pulse" />
+        <div key={i} style={{ height: 260, background: 'rgba(255,255,255,0.03)', animation: 'pulse 2s infinite' }} />
       ))}
     </>
   );

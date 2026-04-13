@@ -119,8 +119,8 @@ function FilterSection({ id, title, filter, onChange }: FilterSectionProps) {
         <button
           className={`text-xs px-2 py-1 rounded border min-h-[32px] min-w-[44px] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 ${
             isOff
-              ? 'bg-[#2c2c2c] border-[#444] text-gray-500 hover:bg-[#333]'
-              : 'bg-brand/20 border-brand/50 text-brand hover:bg-brand/30'
+              ? 'btn-ghost'
+              : 'btn-active'
           }`}
           onClick={handleOffToggle}
           aria-pressed={!isOff}

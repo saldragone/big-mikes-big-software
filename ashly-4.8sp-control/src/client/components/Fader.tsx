@@ -229,15 +229,7 @@ export default function Fader({
           onBlur={handleTextBlur}
           onKeyDown={handleTextKeyDown}
           aria-label={`${label ?? 'Fader'} value`}
-          className="
-            w-[52px] text-center text-xs font-mono
-            bg-[#2c2c2c] border border-[#444444]
-            text-gray-200 rounded
-            px-1 py-0.5
-            min-h-[32px]
-            focus:outline-none focus:border-brand
-            disabled:opacity-50 disabled:cursor-not-allowed
-          "
+          className="input text-center text-xs font-mono w-[52px] min-h-[30px] px-1 py-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {unit && (
           <span className="text-xs text-gray-500 font-mono">{unit}</span>
@@ -249,48 +241,48 @@ export default function Fader({
         .fader-range::-webkit-slider-runnable-track {
           height: 6px;
           border-radius: 3px;
-          background: #2c2c2c;
-          border: 1px solid #444444;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.1);
         }
         .fader-range::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 22px;
-          height: 22px;
-          border-radius: 3px;
-          background: #555555;
-          border: 1px solid #777777;
+          width: 20px;
+          height: 20px;
+          border-radius: 4px;
+          background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
+          border: 1px solid rgba(255,255,255,0.2);
           cursor: pointer;
-          margin-top: -9px;
+          margin-top: -8px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.6);
-          transition: background 0.1s;
+          transition: background 0.1s, box-shadow 0.1s;
         }
         .fader-range::-webkit-slider-thumb:hover {
-          background: #f97316;
-          border-color: #f97316;
+          background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+          border-color: rgba(249,115,22,0.5);
+          box-shadow: 0 0 8px rgba(249,115,22,0.4);
         }
         .fader-range::-webkit-slider-thumb:active {
-          background: #c2570d;
-          border-color: #c2570d;
+          background: linear-gradient(180deg, #ea6b0c 0%, #c2570d 100%);
         }
         .fader-range::-moz-range-track {
           height: 6px;
           border-radius: 3px;
-          background: #2c2c2c;
-          border: 1px solid #444444;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.1);
         }
         .fader-range::-moz-range-thumb {
-          width: 22px;
-          height: 22px;
-          border-radius: 3px;
-          background: #555555;
-          border: 1px solid #777777;
+          width: 20px;
+          height: 20px;
+          border-radius: 4px;
+          background: linear-gradient(180deg, #555 0%, #3a3a3a 100%);
+          border: 1px solid rgba(255,255,255,0.2);
           cursor: pointer;
           box-shadow: 0 1px 3px rgba(0,0,0,0.6);
         }
         .fader-range::-moz-range-thumb:hover {
-          background: #f97316;
-          border-color: #f97316;
+          background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+          border-color: rgba(249,115,22,0.5);
         }
         .fader-range:focus::-webkit-slider-thumb {
           box-shadow: 0 0 0 2px #f97316;

@@ -16,35 +16,38 @@ interface Props {
   send: (obj: object) => void;
 }
 
+// The DEMO pseudo-port is always available regardless of hardware
+const DEMO_PORT: PortInfo = { path: 'DEMO', manufacturer: 'Simulated Device' };
+
 export default function ConnectionBar({
   connected,
   port,
-  deviceName,
+  deviceName: _deviceName,
   ports,
   onConnect,
   onDisconnect,
   onRefreshPorts,
   send,
 }: Props) {
-  const [selectedPort, setSelectedPort] = useState<string>(port || '');
+  // Build the full port list: DEMO always first, then real ports
+  const allPorts: PortInfo[] = [DEMO_PORT, ...ports.filter(p => p.path !== 'DEMO')];
 
-  // On mount, request available ports
+  const [selectedPort, setSelectedPort] = useState<string>(port || 'DEMO');
+
+  // Request available ports on mount
   useEffect(() => {
     send({ type: 'getPorts' });
   }, []);
 
-  // Keep selectedPort in sync with the connected port
+  // Sync selected port with the active connection
   useEffect(() => {
-    if (connected && port) {
-      setSelectedPort(port);
-    }
+    if (connected && port) setSelectedPort(port);
   }, [connected, port]);
 
-  // When ports list updates and nothing selected, auto-select first
+  // Auto-select first real port when list updates (unless DEMO is selected)
   useEffect(() => {
-    if (!selectedPort && ports.length > 0) {
-      setSelectedPort(ports[0].path);
-    }
+    if (selectedPort === 'DEMO') return;
+    if (!selectedPort && ports.length > 0) setSelectedPort(ports[0].path);
   }, [ports]);
 
   const handleRefresh = () => {
@@ -52,7 +55,7 @@ export default function ConnectionBar({
     onRefreshPorts();
   };
 
-  const handleConnectToggle = () => {
+  const handleToggle = () => {
     if (connected) {
       onDisconnect();
     } else if (selectedPort) {
@@ -60,110 +63,98 @@ export default function ConnectionBar({
     }
   };
 
+  const isDemo = port === 'DEMO' && connected;
+
   return (
-    <div className="w-full bg-[#252525] border-b border-[#3a3a3a] px-3 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+    <div style={{
+      padding: '8px 12px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 8,
+      alignItems: 'center',
+      borderTop: '1px solid rgba(255,255,255,0.05)',
+    }}>
 
-        {/* Status indicator */}
-        <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
-          <span
-            className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-              connected ? 'bg-green-500' : 'bg-red-500'
-            }`}
-            aria-label={connected ? 'Connected' : 'Disconnected'}
-          />
-          <span className="text-sm font-mono text-gray-300 truncate">
-            {connected ? port : 'Disconnected'}
-          </span>
-          {connected && deviceName && (
-            <>
-              <span className="text-gray-600 flex-shrink-0">|</span>
-              <span className="text-sm font-mono text-brand truncate" title={deviceName}>
-                {deviceName}
-              </span>
-            </>
-          )}
-        </div>
+      {/* Port selector */}
+      <div style={{ display: 'flex', gap: 6, flex: '1 1 240px', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.3)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          Port
+        </span>
+        <select
+          className="select"
+          value={selectedPort}
+          onChange={e => setSelectedPort(e.target.value)}
+          disabled={connected}
+          style={{ flex: 1, minWidth: 160 }}
+          aria-label="Serial port"
+        >
+          {allPorts.map(p => (
+            <option key={p.path} value={p.path}>
+              {p.path === 'DEMO'
+                ? '⚡ DEMO — Simulated Ashly 4.8SP'
+                : `${p.path}${p.manufacturer ? ` — ${p.manufacturer}` : ''}`}
+            </option>
+          ))}
+        </select>
 
-        {/* Spacer on desktop */}
-        <div className="hidden sm:block flex-1" />
-
-        {/* Controls row */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-
-          {/* Port select */}
-          <select
-            value={selectedPort}
-            onChange={(e) => setSelectedPort(e.target.value)}
-            disabled={connected}
-            className="
-              w-full sm:w-auto
-              bg-[#2c2c2c] border border-[#444444] text-gray-200 text-sm
-              rounded px-2 py-0 font-mono
-              min-h-[44px] sm:min-h-[36px]
-              focus:outline-none focus:border-brand
-              disabled:opacity-50 disabled:cursor-not-allowed
-              appearance-none
-            "
-            aria-label="Serial port"
-          >
-            {ports.length === 0 ? (
-              <option value="">No ports found</option>
-            ) : (
-              ports.map((p) => (
-                <option key={p.path} value={p.path}>
-                  {p.path}
-                  {p.manufacturer ? ` — ${p.manufacturer}` : ''}
-                </option>
-              ))
-            )}
-          </select>
-
-          {/* Refresh button */}
+        {/* Refresh — only relevant when not in demo */}
+        {selectedPort !== 'DEMO' && (
           <button
             onClick={handleRefresh}
             disabled={connected}
-            className="
-              w-full sm:w-auto
-              min-h-[44px] sm:min-h-[36px]
-              px-3 py-1
-              bg-[#2c2c2c] hover:bg-[#333333] active:bg-[#3a3a3a]
-              border border-[#444444]
-              text-gray-300 text-sm font-medium
-              rounded
-              transition-colors
-              disabled:opacity-50 disabled:cursor-not-allowed
-              focus:outline-none focus:border-brand
-            "
+            className="btn-ghost"
+            style={{ flexShrink: 0, padding: '6px 10px', fontSize: 12 }}
             aria-label="Refresh port list"
+            title="Refresh serial ports"
           >
-            Refresh
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.7 }}>
+              <path d="M13.65 2.35A7.958 7.958 0 0 0 8 0C3.58 0 0 3.58 0 8s3.58 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z"/>
+            </svg>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
-
-          {/* Connect / Disconnect button */}
-          <button
-            onClick={handleConnectToggle}
-            disabled={!connected && !selectedPort}
-            className={`
-              w-full sm:w-auto
-              min-h-[44px] sm:min-h-[36px]
-              px-4 py-1
-              text-sm font-semibold
-              rounded
-              transition-colors
-              focus:outline-none
-              disabled:opacity-50 disabled:cursor-not-allowed
-              ${connected
-                ? 'bg-red-700 hover:bg-red-600 active:bg-red-800 text-white border border-red-600 focus:border-red-400'
-                : 'bg-brand hover:bg-orange-500 active:bg-orange-700 text-white border border-orange-600 focus:border-orange-300'
-              }
-            `}
-            aria-label={connected ? 'Disconnect from device' : 'Connect to device'}
-          >
-            {connected ? 'Disconnect' : 'Connect'}
-          </button>
-        </div>
+        )}
       </div>
+
+      {/* Connect / Disconnect */}
+      <button
+        onClick={handleToggle}
+        disabled={!connected && !selectedPort}
+        style={{
+          flexShrink: 0,
+          padding: '6px 16px',
+          borderRadius: 8,
+          fontSize: 13,
+          fontWeight: 600,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          cursor: 'pointer',
+          transition: 'all 0.15s',
+          minHeight: 34,
+          border: 'none',
+          ...(connected
+            ? {
+                background: 'rgba(239,68,68,0.15)',
+                border: '1px solid rgba(239,68,68,0.3)',
+                color: '#f87171',
+              }
+            : selectedPort === 'DEMO'
+            ? {
+                background: 'linear-gradient(180deg, #fb923c 0%, #ea6b0c 100%)',
+                color: 'white',
+                boxShadow: '0 0 12px rgba(249,115,22,0.35), 0 1px 2px rgba(0,0,0,0.4)',
+              }
+            : {
+                background: 'linear-gradient(180deg, #fb923c 0%, #ea6b0c 100%)',
+                color: 'white',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              }
+          ),
+        }}
+        aria-label={connected ? 'Disconnect' : selectedPort === 'DEMO' ? 'Start Demo' : 'Connect'}
+      >
+        {connected
+          ? isDemo ? 'Exit Demo' : 'Disconnect'
+          : selectedPort === 'DEMO' ? '⚡ Start Demo' : 'Connect'}
+      </button>
     </div>
   );
 }

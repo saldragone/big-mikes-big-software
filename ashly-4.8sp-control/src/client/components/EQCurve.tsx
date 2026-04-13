@@ -267,14 +267,14 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     const yOf  = (db: number)   => dbToY(db, H, PAD_TOP, PAD_BOTTOM);
 
     // ── Clear ────────────────────────────────────────────────────────────────
-    ctx.fillStyle = '#1e1e1e';
+    ctx.fillStyle = '#09090f';
     ctx.fillRect(0, 0, W, H);
 
     // ── Grid ─────────────────────────────────────────────────────────────────
 
     // Vertical frequency grid lines (octave intervals)
     const freqGridLines = [20, 40, 80, 160, 320, 640, 1250, 2500, 5000, 10000, 20000];
-    ctx.strokeStyle = '#2c2c2c';
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
     ctx.lineWidth   = 1;
     for (const f of freqGridLines) {
       const x = xOf(f);
@@ -288,7 +288,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
     const dbGridLines = [-12, -6, 0, 6, 12];
     for (const db of dbGridLines) {
       const y = yOf(db);
-      ctx.strokeStyle = db === 0 ? '#444444' : '#2c2c2c';
+      ctx.strokeStyle = db === 0 ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)';
       ctx.lineWidth   = db === 0 ? 1.5 : 1;
       ctx.beginPath();
       ctx.moveTo(PAD_LEFT, y);
@@ -388,7 +388,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
 
     // ── Clip the draw area ────────────────────────────────────────────────────
     // Draw a border rect to frame the plot area
-    ctx.strokeStyle = '#333333';
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth   = 1;
     ctx.strokeRect(PAD_LEFT, PAD_TOP, drawW, drawH);
 
@@ -430,7 +430,7 @@ export default function EQCurve({ filters, className = '', height = 120 }: Props
   }, [draw]);
 
   return (
-    <div ref={containerRef} className={`w-full bg-[#1e1e1e] rounded overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`w-full rounded overflow-hidden ${className}`} style={{ background: '#09090f' }}>
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: '100%', height: `${height}px` }}

@@ -57,7 +57,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
             {OUTPUT_LABELS.map((outputLabel, outputIndex) => {
               const bitmask = routing[outputIndex] ?? 0;
               // Alternate row backgrounds for readability
-              const rowBg = outputIndex % 2 === 0 ? 'bg-[#1e1e1e]' : 'bg-[#252525]';
+              const rowBg = outputIndex % 2 === 0 ? '' : '';
 
               return (
                 <tr key={outputIndex} className={rowBg}>
@@ -100,7 +100,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
                               block w-4 h-4 rounded-sm transition-colors duration-100
                               ${isEnabled
                                 ? 'bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.5)]'
-                                : 'bg-[#383838] group-hover:bg-[#4a4a4a] border border-[#555]'
+                                : 'bg-white/[0.07] group-hover:bg-white/[0.12] border border-white/10'
                               }
                             `}
                             aria-hidden="true"
@@ -123,7 +123,7 @@ export default function RoutingMatrix({ routing, onToggle }: Props) {
           Connected
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="block w-3 h-3 rounded-sm bg-[#383838] border border-[#555]" aria-hidden="true" />
+          <span className="block w-3 h-3 rounded-sm bg-white/[0.07] border border-white/10" aria-hidden="true" />
           Disconnected
         </div>
       </div>

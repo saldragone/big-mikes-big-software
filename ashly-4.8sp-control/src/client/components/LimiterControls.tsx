@@ -95,7 +95,7 @@ export default function LimiterControls({
           className={`text-xs px-3 py-1 rounded border min-h-[44px] min-w-[64px] font-semibold transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-500/50 ${
             enabled
               ? 'bg-orange-600/20 border-orange-500/50 text-orange-400 hover:bg-orange-600/30'
-              : 'bg-[#2c2c2c] border-[#444] text-gray-500 hover:bg-[#333]'
+              : 'btn-ghost'
           }`}
           onClick={onEnabledToggle}
           aria-pressed={enabled}

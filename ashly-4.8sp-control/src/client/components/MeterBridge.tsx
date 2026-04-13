@@ -27,8 +27,8 @@ const COLOR_YELLOW = '#eab308';
 const COLOR_RED    = '#ef4444';
 const COLOR_CLIP   = '#ff0000';
 const COLOR_GR     = '#3b82f6';      // gain reduction overlay
-const COLOR_BG     = '#1e1e1e';
-const COLOR_TRACK  = '#2c2c2c';
+const COLOR_BG     = '#09090f';
+const COLOR_TRACK  = '#1a1a28';
 const COLOR_LABEL  = '#9ca3af';      // gray-400
 const COLOR_GROUP  = '#6b7280';      // gray-500
 const COLOR_PEAK   = '#ffffff';
@@ -322,7 +322,7 @@ export default function MeterBridge({
   }, []);
 
   return (
-    <div className="w-full bg-[#1e1e1e] rounded overflow-hidden">
+    <div className="w-full rounded overflow-hidden" style={{ background: '#09090f' }}>
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
